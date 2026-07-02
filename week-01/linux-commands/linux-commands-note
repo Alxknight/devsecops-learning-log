@@ -1,0 +1,628 @@
+# Basic Linux Commands for DevOps
+
+## `cp`
+
+**What it does:**
+Copies files or directories from one location to another.
+
+**Example usage:**
+
+```bash
+cp file.txt backup.txt
+```
+
+Copies `file.txt` and creates a new file called `backup.txt`.
+
+To copy a directory:
+
+```bash
+cp -r app/ app-backup/
+```
+
+**Why it matters for DevOps:**
+DevOps engineers often copy configuration files, backup files, scripts, logs, and deployment artifacts.
+
+**Common mistakes:**
+
+```bash
+cp file.txt existing_file.txt
+```
+
+This can overwrite `existing_file.txt` without warning.
+
+Forgetting `-r` when copying directories:
+
+```bash
+cp my-folder/ backup/
+```
+
+This fails because directories need recursive copy:
+
+```bash
+cp -r my-folder/ backup/
+```
+
+---
+
+## `mv`
+
+**What it does:**
+Moves or renames files and directories.
+
+**Example usage:**
+
+```bash
+mv file.txt /tmp/
+```
+
+Moves `file.txt` into `/tmp`.
+
+Rename a file:
+
+```bash
+mv old-name.txt new-name.txt
+```
+
+Move a file to the parent directory:
+
+```bash
+mv file.txt ..
+```
+
+**Why it matters for DevOps:**
+Used to organize files, rename deployment artifacts, move logs, and place configuration files in the correct directories.
+
+**Common mistakes:**
+Accidentally overwriting a file with the same name:
+
+```bash
+mv config.yml /etc/app/config.yml
+```
+
+If `/etc/app/config.yml` already exists, it may be replaced.
+
+Confusing move and copy: `mv` removes the file from the original location; `cp` keeps the original.
+
+---
+
+## `rm`
+
+**What it does:**
+Deletes files or directories.
+
+**Example usage:**
+
+```bash
+rm file.txt
+```
+
+Deletes `file.txt`.
+
+Delete a directory and its contents:
+
+```bash
+rm -r old-folder/
+```
+
+Force delete without asking:
+
+```bash
+rm -f file.txt
+```
+
+**Why it matters for DevOps:**
+Used to clean up temporary files, old logs, build artifacts, and unused directories.
+
+**Common mistakes:**
+Using dangerous commands carelessly:
+
+```bash
+rm -rf /
+```
+
+This can destroy the system.
+
+Running `rm -rf` in the wrong directory:
+
+```bash
+rm -rf *
+```
+
+This deletes everything in the current directory.
+
+Always check your location first:
+
+```bash
+pwd
+ls
+```
+
+---
+
+## `cat`
+
+**What it does:**
+Displays the contents of a file.
+
+**Example usage:**
+
+```bash
+cat file.txt
+```
+
+Shows the contents of `file.txt`.
+
+Combine files:
+
+```bash
+cat part1.txt part2.txt > combined.txt
+```
+
+**Why it matters for DevOps:**
+Useful for quickly checking configuration files, logs, environment files, and script contents.
+
+**Common mistakes:**
+Using `cat` on very large files:
+
+```bash
+cat huge-log-file.log
+```
+
+This can flood the terminal. For large files, use tools like `less`, `head`, or `tail`.
+
+Accidentally overwriting files:
+
+```bash
+cat file1.txt > file2.txt
+```
+
+This replaces the contents of `file2.txt`.
+
+---
+
+## `echo`
+
+**What it does:**
+Prints text to the terminal or writes text into files.
+
+**Example usage:**
+
+```bash
+echo "Hello World"
+```
+
+Prints:
+
+```text
+Hello World
+```
+
+Write text to a file:
+
+```bash
+echo "ENV=production" > .env
+```
+
+Append text to a file:
+
+```bash
+echo "DEBUG=false" >> .env
+```
+
+**Why it matters for DevOps:**
+Used in shell scripts, CI/CD pipelines, debugging, environment setup, and generating simple configuration files.
+
+**Common mistakes:**
+Using `>` instead of `>>`.
+
+This overwrites the file:
+
+```bash
+echo "new line" > file.txt
+```
+
+This appends to the file:
+
+```bash
+echo "new line" >> file.txt
+```
+
+Not using quotes when the text contains spaces:
+
+```bash
+echo Hello World
+```
+
+Usually works, but quotes are safer:
+
+```bash
+echo "Hello World"
+```
+
+---
+
+## `cd`
+
+**What it does:**
+Changes the current directory.
+
+**Example usage:**
+
+```bash
+cd /var/log
+```
+
+Moves into `/var/log`.
+
+Go to the parent directory:
+
+```bash
+cd ..
+```
+
+Go to your home directory:
+
+```bash
+cd ~
+```
+
+Go back to the previous directory:
+
+```bash
+cd -
+```
+
+**Why it matters for DevOps:**
+DevOps work requires navigating through project folders, server directories, logs, scripts, and configuration paths.
+
+**Common mistakes:**
+Trying to enter a file instead of a directory:
+
+```bash
+cd file.txt
+```
+
+This fails because `cd` only works with directories.
+
+Forgetting where you are before running important commands. Use:
+
+```bash
+pwd
+```
+
+---
+
+## `ls`
+
+**What it does:**
+Lists files and directories.
+
+**Example usage:**
+
+```bash
+ls
+```
+
+Lists files in the current directory.
+
+More detailed view:
+
+```bash
+ls -l
+```
+
+Show hidden files:
+
+```bash
+ls -a
+```
+
+Detailed view including hidden files:
+
+```bash
+ls -la
+```
+
+**Why it matters for DevOps:**
+Used constantly to inspect directories, verify files, check permissions, and confirm deployment or script outputs.
+
+**Common mistakes:**
+Forgetting hidden files exist. Files like `.env`, `.gitignore`, and `.ssh` are hidden by default.
+
+Use:
+
+```bash
+ls -a
+```
+
+Assuming a file is missing when it is actually hidden.
+
+---
+
+## `pwd`
+
+**What it does:**
+Prints the current working directory.
+
+**Example usage:**
+
+```bash
+pwd
+```
+
+Example output:
+
+```text
+/home/user/project
+```
+
+**Why it matters for DevOps:**
+Helps confirm where you are before running commands that copy, move, delete, or modify files.
+
+**Common mistakes:**
+Not checking `pwd` before running dangerous commands like:
+
+```bash
+rm -rf *
+```
+
+You should always confirm your location first:
+
+```bash
+pwd
+```
+
+---
+
+## `grep`
+
+**What it does:**
+Searches for text patterns inside files.
+
+**Example usage:**
+
+```bash
+grep "error" app.log
+```
+
+Searches for the word `error` inside `app.log`.
+
+Case-insensitive search:
+
+```bash
+grep -i "error" app.log
+```
+
+Search recursively in a directory:
+
+```bash
+grep -r "PORT" .
+```
+
+**Why it matters for DevOps:**
+Very useful for searching logs, configuration files, scripts, environment variables, and error messages.
+
+**Common mistakes:**
+Searching case-sensitively by accident:
+
+```bash
+grep "error" app.log
+```
+
+This will not match `Error` or `ERROR`. Use:
+
+```bash
+grep -i "error" app.log
+```
+
+Forgetting quotes when searching for text with spaces:
+
+```bash
+grep connection failed app.log
+```
+
+Better:
+
+```bash
+grep "connection failed" app.log
+```
+
+---
+
+## `find`
+
+**What it does:**
+Searches for files and directories.
+
+**Example usage:**
+
+```bash
+find . -name "file.txt"
+```
+
+Searches for `file.txt` starting from the current directory.
+
+Find all `.log` files:
+
+```bash
+find . -name "*.log"
+```
+
+Find directories:
+
+```bash
+find . -type d -name "config"
+```
+
+Find files:
+
+```bash
+find . -type f -name "*.sh"
+```
+
+**Why it matters for DevOps:**
+Useful for finding logs, scripts, configuration files, certificates, build outputs, and files across large directory structures.
+
+**Common mistakes:**
+Forgetting to quote wildcard patterns:
+
+```bash
+find . -name *.log
+```
+
+Better:
+
+```bash
+find . -name "*.log"
+```
+
+Searching from the wrong starting directory:
+
+```bash
+find / -name "config.yml"
+```
+
+This searches the whole system and may be slow or show permission errors.
+
+---
+
+## `mkdir`
+
+**What it does:**
+Creates directories.
+
+**Example usage:**
+
+```bash
+mkdir logs
+```
+
+Creates a directory called `logs`.
+
+Create nested directories:
+
+```bash
+mkdir -p app/config/dev
+```
+
+The `-p` option creates parent directories if they do not already exist.
+
+**Why it matters for DevOps:**
+Used to create project folders, log directories, backup directories, deployment folders, and configuration structures.
+
+**Common mistakes:**
+Forgetting `-p` when creating nested directories:
+
+```bash
+mkdir app/config/dev
+```
+
+This fails if `app/config` does not already exist.
+
+Correct:
+
+```bash
+mkdir -p app/config/dev
+```
+
+Creating directories in the wrong location because you did not check:
+
+```bash
+pwd
+```
+
+---
+
+## `touch`
+
+**What it does:**
+Creates an empty file or updates the timestamp of an existing file.
+
+**Example usage:**
+
+```bash
+touch file.txt
+```
+
+Creates `file.txt` if it does not exist.
+
+Create multiple files:
+
+```bash
+touch app.log error.log access.log
+```
+
+**Why it matters for DevOps:**
+Used to create placeholder files, log files, config files, and files needed by scripts or applications.
+
+**Common mistakes:**
+Thinking `touch` is only for creating files. If the file already exists, it updates the file’s timestamp instead.
+
+Creating a file in the wrong directory because you did not check your location:
+
+```bash
+pwd
+```
+
+Using `touch` when you actually need to create a directory. For directories, use:
+
+```bash
+mkdir folder-name
+```
+
+---
+
+## Special Path: `..`
+
+**What it does:**
+`..` means the parent directory, or the folder one level above the current one.
+
+**Example usage:**
+
+```bash
+cd ..
+```
+
+Moves to the previous folder.
+
+```bash
+mv file.txt ..
+```
+
+Moves `file.txt` to the parent folder.
+
+```bash
+cp file.txt ..
+```
+
+Copies `file.txt` to the parent folder.
+
+**Why it matters for DevOps:**
+It helps navigate and move files between project directories quickly.
+
+**Common mistakes:**
+Not realizing where `..` points to. Check your current location first:
+
+```bash
+pwd
+```
+
+---
+
+# Quick Summary Table
+
+| Command | Purpose                                 |
+| ------- | --------------------------------------- |
+| `cp`    | Copy files or directories               |
+| `mv`    | Move or rename files/directories        |
+| `rm`    | Delete files or directories             |
+| `cat`   | Display file contents                   |
+| `echo`  | Print text or write text to files       |
+| `cd`    | Change directory                        |
+| `ls`    | List files and directories              |
+| `pwd`   | Show current directory                  |
+| `grep`  | Search text inside files                |
+| `find`  | Search for files and directories        |
+| `mkdir` | Create directories                      |
+| `touch` | Create empty files or update timestamps |
+| `..`    | Refers to the parent directory          |

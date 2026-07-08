@@ -1,0 +1,152 @@
+[
+  {
+    "resource_type": "aws_s3_bucket",
+    "resource_name": "prod-customer-data",
+    "environment": "production",
+    "control_id": "S3_PUBLIC_ACCESS_DISABLED",
+    "status": "failed",
+    "severity": "critical",
+    "message": "S3 bucket 'prod-customer-data' is publicly accessible.",
+    "recommendation": "Disable public access and review the bucket policy.",
+    "framework_mapping": {
+      "nist_csf": "PR.DS - Data Security",
+      "iso_27001": "A.8 - Technology Controls",
+      "cis_aws": "S3 security best practices"
+    }
+  },
+  {
+    "resource_type": "aws_s3_bucket",
+    "resource_name": "prod-customer-data",
+    "environment": "production",
+    "control_id": "S3_ENCRYPTION_ENABLED",
+    "status": "failed",
+    "severity": "high",
+    "message": "S3 bucket 'prod-customer-data' does not have encryption enabled.",
+    "recommendation": "Enable default server-side encryption for the bucket.",
+    "framework_mapping": {
+      "nist_csf": "PR.DS - Data Security",
+      "iso_27001": "A.8 - Technology Controls",
+      "cis_aws": "S3 security best practices"
+    }
+  },
+  {
+    "resource_type": "aws_s3_bucket",
+    "resource_name": "prod-customer-data",
+    "environment": "production",
+    "control_id": "S3_VERSIONING_ENABLED",
+    "status": "failed",
+    "severity": "medium",
+    "message": "S3 bucket 'prod-customer-data' does not have versioning enabled.",
+    "recommendation": "Enable versioning to protect against accidental deletion or overwrite.",
+    "framework_mapping": {
+      "nist_csf": "PR.DS - Data Security",
+      "iso_27001": "A.8 - Technology Controls",
+      "cis_aws": "S3 security best practices"
+    }
+  },
+  {
+    "resource_type": "aws_s3_bucket",
+    "resource_name": "prod-customer-data",
+    "environment": "production",
+    "control_id": "S3_ACCESS_LOGGING_ENABLED",
+    "status": "failed",
+    "severity": "medium",
+    "message": "S3 bucket 'prod-customer-data' does not have access logging enabled.",
+    "recommendation": "Enable S3 server access logging or centralized CloudTrail monitoring.",
+    "framework_mapping": {
+      "nist_csf": "PR.DS - Data Security",
+      "iso_27001": "A.8 - Technology Controls",
+      "cis_aws": "S3 security best practices"
+    }
+  },
+  {
+    "resource_type": "aws_s3_bucket",
+    "resource_name": "staging-marketing-assets",
+    "environment": "staging",
+    "control_id": "S3_PUBLIC_ACCESS_DISABLED",
+    "status": "failed",
+    "severity": "high",
+    "message": "S3 bucket 'staging-marketing-assets' is publicly accessible.",
+    "recommendation": "Disable public access and review the bucket policy.",
+    "framework_mapping": {
+      "nist_csf": "PR.DS - Data Security",
+      "iso_27001": "A.8 - Technology Controls",
+      "cis_aws": "S3 security best practices"
+    }
+  },
+  {
+    "resource_type": "aws_s3_bucket",
+    "resource_name": "staging-marketing-assets",
+    "environment": "staging",
+    "control_id": "S3_VERSIONING_ENABLED",
+    "status": "failed",
+    "severity": "low",
+    "message": "S3 bucket 'staging-marketing-assets' does not have versioning enabled.",
+    "recommendation": "Enable versioning to protect against accidental deletion or overwrite.",
+    "framework_mapping": {
+      "nist_csf": "PR.DS - Data Security",
+      "iso_27001": "A.8 - Technology Controls",
+      "cis_aws": "S3 security best practices"
+    }
+  },
+  {
+    "resource_type": "aws_s3_bucket",
+    "resource_name": "staging-marketing-assets",
+    "environment": "staging",
+    "control_id": "S3_ACCESS_LOGGING_ENABLED",
+    "status": "failed",
+    "severity": "low",
+    "message": "S3 bucket 'staging-marketing-assets' does not have access logging enabled.",
+    "recommendation": "Enable S3 server access logging or centralized CloudTrail monitoring.",
+    "framework_mapping": {
+      "nist_csf": "PR.DS - Data Security",
+      "iso_27001": "A.8 - Technology Controls",
+      "cis_aws": "S3 security best practices"
+    }
+  },
+  {
+    "resource_type": "aws_s3_bucket",
+    "resource_name": "dev-temp-files",
+    "environment": "development",
+    "control_id": "S3_ENCRYPTION_ENABLED",
+    "status": "failed",
+    "severity": "medium",
+    "message": "S3 bucket 'dev-temp-files' does not have encryption enabled.",
+    "recommendation": "Enable default server-side encryption for the bucket.",
+    "framework_mapping": {
+      "nist_csf": "PR.DS - Data Security",
+      "iso_27001": "A.8 - Technology Controls",
+      "cis_aws": "S3 security best practices"
+    }
+  },
+  {
+    "resource_type": "aws_s3_bucket",
+    "resource_name": "dev-temp-files",
+    "environment": "development",
+    "control_id": "S3_VERSIONING_ENABLED",
+    "status": "failed",
+    "severity": "low",
+    "message": "S3 bucket 'dev-temp-files' does not have versioning enabled.",
+    "recommendation": "Enable versioning to protect against accidental deletion or overwrite.",
+    "framework_mapping": {
+      "nist_csf": "PR.DS - Data Security",
+      "iso_27001": "A.8 - Technology Controls",
+      "cis_aws": "S3 security best practices"
+    }
+  },
+  {
+    "resource_type": "aws_s3_bucket",
+    "resource_name": "dev-temp-files",
+    "environment": "development",
+    "control_id": "S3_ACCESS_LOGGING_ENABLED",
+    "status": "failed",
+    "severity": "low",
+    "message": "S3 bucket 'dev-temp-files' does not have access logging enabled.",
+    "recommendation": "Enable S3 server access logging or centralized CloudTrail monitoring.",
+    "framework_mapping": {
+      "nist_csf": "PR.DS - Data Security",
+      "iso_27001": "A.8 - Technology Controls",
+      "cis_aws": "S3 security best practices"
+    }
+  }
+]

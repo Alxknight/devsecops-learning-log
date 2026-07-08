@@ -1,0 +1,34 @@
+[
+  {
+    "bucket_name": "prod-customer-data",
+    "environment": "production",
+    "is_public": true,
+    "encryption_enabled": false,
+    "versioning_enabled": false,
+    "logging_enabled": false
+  },
+  {
+    "bucket_name": "prod-security-logs",
+    "environment": "production",
+    "is_public": false,
+    "encryption_enabled": true,
+    "versioning_enabled": true,
+    "logging_enabled": true
+  },
+  {
+    "bucket_name": "staging-marketing-assets",
+    "environment": "staging",
+    "is_public": true,
+    "encryption_enabled": true,
+    "versioning_enabled": false,
+    "logging_enabled": false
+  },
+  {
+    "bucket_name": "dev-temp-files",
+    "environment": "development",
+    "is_public": false,
+    "encryption_enabled": false,
+    "versioning_enabled": false,
+    "logging_enabled": false
+  }
+]

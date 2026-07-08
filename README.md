@@ -1,26 +1,178 @@
-<< 'EOF'
-# DevSecOps Learning Log
+# DevSecOps Learning Journey
 
-This repository documents my learning path to transition from Security Compliance into DevSecOps.
+> **12-Month Transformation:** Security Compliance Analyst → DevSecOps Engineer  
+> **Timeline:** July 2026 - July 2027  
+> **Target Role:** Junior DevOps Engineer or Cloud Security Analyst
 
-## Goal
+## About This Journey
 
-Build practical skills in Linux, Git, Docker, GitHub Actions, AWS, Terraform, Kubernetes basics, and DevSecOps security practices.
+I'm documenting my transition from 2.5 years of security compliance work (questionnaires, SOC 2, UAR) into hands-on DevSecOps engineering. This repository tracks my daily learning, blockers, wins, and progress across a structured 12-month roadmap.
 
-## Current Focus
+**Time Commitment:**
+- Weeks 1-16: 12 hours/week (working two jobs)
+- Weeks 17-52: 15-20 hours/week (full focus)
 
-Week 1:
+**Target Location:** Remote positions (based in Mexico)  
+**Platform Focus:** AWS
 
-- Set up WSL2 Ubuntu
-- Configure Git
-- Create my first repository
-- Practice Linux and Git basics
+---
 
-## Progress Log
+## Current Status
 
-### Day 1
+### Week 1 Complete ✅ (July 2-8, 2026)
 
-- WSL2 Ubuntu is running.
-- Git is installed and configured.
-- Created initial README.
-EOF
+**Milestone Achievements:**
+- 🎯 **Bandit CTF:** Levels 0-17 completed (security-focused Linux challenges)
+- 🛠️ **KodeKloud:** 6 hands-on labs completed
+- 📚 **Multi-platform learning:** KillerCoda, LabEx, Exercism rotation established
+- 📝 **Documentation:** 17 comprehensive knowledge guides created
+- 💻 **Commands Mastered:** 40+ Linux commands with real-world context
+
+**Skills Acquired:**
+- Linux fundamentals (file system, navigation, special characters)
+- Package management (RPM, YUM, DPKG, APT)
+- File permissions (chmod, chown, stat)
+- User management (useradd, usermod, service accounts)
+- Cron job scheduling
+- SSH operations (keys, SCP transfers)
+- Security tools (base64, ROT13, netcat, nmap, openssl)
+- Python virtual environments (venv, pip)
+- Cloud CLI basics (AWS EC2, Azure SSH key pairs)
+
+---
+
+## Learning Platforms
+
+| Platform | Status | Focus Area |
+|----------|--------|------------|
+| [KillerCoda](https://killercoda.com) | ✅ Active | Interactive Linux scenarios |
+| [LabEx](https://labex.io) | ✅ Active | Hands-on Linux labs |
+| [KodeKloud](https://kodekloud.com) | ✅ Active | System administration |
+| [Bandit CTF](https://overthewire.org/wargames/bandit/) | ✅ Active | Security challenges |
+| [Exercism.org](https://exercism.org/tracks/bash) | ✅ Active | Bash scripting track |
+| AWS Free Tier | 📋 Planned | Cloud hands-on practice |
+
+**Why multi-platform?** Each platform teaches the same concepts differently, reinforcing learning through varied approaches.
+
+---
+
+## Roadmap
+
+### Phase 1: Foundations (Months 1-3)
+**Status:** 🔄 In Progress - Week 1 of 12 complete
+
+- [x] Week 1: Linux fundamentals intensive
+- [ ] Week 2-4: Bash scripting, file operations, networking basics
+- [ ] Week 5-8: AWS basics (S3, IAM, EC2, CloudWatch)
+- [ ] Week 9-12: Git workflows, Docker fundamentals
+
+### Phase 2: Automation & Infrastructure (Months 4-6)
+- [ ] Terraform basics
+- [ ] CI/CD pipelines (GitHub Actions)
+- [ ] Python for automation
+- [ ] Infrastructure as Code
+
+### Phase 3: Security Integration (Months 7-9)
+- [ ] AWS security services
+- [ ] Container security
+- [ ] Secret management
+- [ ] Security scanning in pipelines
+
+### Phase 4: Advanced & Portfolio (Months 10-12)
+- [ ] Kubernetes basics
+- [ ] Monitoring and logging
+- [ ] 3-5 portfolio projects
+- [ ] Resume and job applications
+
+---
+
+## Week 2 Goals (July 9-15)
+
+- [ ] Bandit CTF levels 18-25 (privilege escalation)
+- [ ] KodeKloud: Networking fundamentals module
+- [ ] Build first automation script (system monitoring)
+- [ ] AWS CLI hands-on: S3 and IAM operations
+- [ ] Practice cron with real-world scheduling
+
+---
+
+## Progress Metrics
+
+| Metric | Week 1 | Month 1 Target |
+|--------|--------|----------------|
+| CTF Challenges | 17 | 30 |
+| Labs Completed | 9 | 20 |
+| Guides Created | 17 | 25 |
+| GitHub Commits | ~50 | 100 |
+| Learning Hours | ~22 | 48 |
+
+---
+
+## Key Resources Created
+
+### Week 1 Documentation (17 guides)
+
+**Fundamentals:**
+1. Git Essential Guide - From basics to emergency commands
+2. Bash Automation Guide - Scripts, error handling, debugging
+3. Bash Fundamentals From Zero - Understanding every symbol
+4. jq JSON Guide - Parsing for DevSecOps
+5. Linux Basic Commands - Essential CLI reference
+
+**System Administration:**
+6. Linux System Internals - Kernel, dmesg, block devices
+7. Linux User Environment - Shells, PATH, aliases, PS1
+8. Linux System Architecture - systemd, filesystem hierarchy
+9. Linux Package Management - RPM, YUM, DPKG, APT
+10. Linux Permissions - chmod, chown, stat deep dive
+11. User Management - useradd, usermod, service accounts
+12. Cron Scheduling - Syntax and troubleshooting
+
+**Security:**
+13. Bandit CTF Guide - OverTheWire walkthrough
+14. Security Tools Reference - base64, ROT13, netcat, nmap, openssl
+15. SSH Operations - Keys, SCP, remote commands
+
+**Cloud:**
+16. Python Virtual Environments - venv, pip, requirements.txt
+17. Cloud CLI Operations - AWS EC2, Azure SSH keys
+
+---
+
+## Learning Principles
+
+**What's Working:**
+- ✅ Multi-platform rotation prevents burnout
+- ✅ Weekend deep dives for complex topics
+- ✅ Documentation while learning cements knowledge
+- ✅ Security-focused challenges maintain motivation
+- ✅ Daily consistency (even 1-2 hours makes progress)
+
+**Approach:**
+- Hands-on practice over theory
+- Real terminal work, not just reading
+- Build reference materials as I learn
+- Ask "why" not just "how"
+- Connect everything to DevSecOps context
+
+---
+
+## Contact & Collaboration
+
+**Status:** Open to connecting with others on similar journeys
+
+- Learning in public to stay accountable
+- Open to feedback and suggestions
+- Interested in study groups or peer learning
+
+---
+
+## License
+
+This learning log is for personal documentation. Resources and guides are shared freely for others on similar paths.
+
+---
+
+**Last Updated:** July 8, 2026  
+**Next Milestone:** Complete Month 1 foundations (July 31, 2026)  
+**Momentum:** Strong - Week 1 exceeded expectations 🚀

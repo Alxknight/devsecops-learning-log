@@ -1,8 +1,11 @@
 import argparse
 import json
 import logging
+import os
 from pathlib import Path
 from typing import Any
+
+import requests
 
 
 logging.basicConfig(
@@ -39,6 +42,21 @@ def parse_args() -> argparse.Namespace:
         required=False,
         default="findings.json",
         help="Path where audit findings will be saved. Default: findings.json",
+    )
+
+    parser.add_argument(
+        "--webhook-url",
+        required=False,
+        default=os.getenv("DISCORD_WEBHOOK_URL"),
+        help="Discord webhook URL. Can also be set using DISCORD_WEBHOOK_URL.",
+    )
+
+    parser.add_argument(
+        "--notify-severity",
+        required=False,
+        default="high",
+        choices=["low", "medium", "high", "critical"],
+        help="Minimum severity required to send a Discord alert. Default: high.",
     )
 
     return parser.parse_args()
@@ -152,6 +170,27 @@ def create_finding(
             "cis_aws": "S3 security best practices",
         },
     }
+
+
+def severity_meets_threshold(severity: str, threshold: str) -> bool:
+    """
+    Check whether a severity level meets or exceeds the notification threshold.
+
+    Args:
+        severity: Finding severity.
+        threshold: Minimum severity required for notification.
+
+    Returns:
+        True if severity meets or exceeds the threshold.
+    """
+    severity_order = {
+        "low": 1,
+        "medium": 2,
+        "high": 3,
+        "critical": 4,
+    }
+
+    return severity_order.get(severity, 0) >= severity_order.get(threshold, 3)
 
 
 def audit_s3_security_controls(buckets: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -353,7 +392,11 @@ def save_findings(findings: list[dict[str, Any]], output_path: str) -> None:
         raise AuditError(f"Could not write findings file: {output_path}") from error
 
 
-def print_summary(total_buckets: int, findings: list[dict[str, Any]], output_path: str) -> None:
+def print_summary(
+    total_buckets: int,
+    findings: list[dict[str, Any]],
+    output_path: str,
+) -> None:
     """
     Print a summary of the audit results.
 
@@ -385,6 +428,126 @@ def print_summary(total_buckets: int, findings: list[dict[str, Any]], output_pat
     logger.info("Findings written to: %s", output_path)
 
 
+def send_discord_alert(
+    webhook_url: str,
+    findings: list[dict[str, Any]],
+    notify_severity: str,
+) -> None:
+    """
+    Send a Discord webhook alert for audit findings that meet the severity threshold.
+
+    Args:
+        webhook_url: Discord webhook URL.
+        findings: List of structured audit findings.
+        notify_severity: Minimum severity required to trigger an alert.
+
+    Raises:
+        AuditError: If the Discord webhook request fails.
+    """
+    if not webhook_url.strip():
+        logger.info("Discord webhook URL is empty. Skipping alert notification.")
+        return
+
+    alert_findings = [
+        finding
+        for finding in findings
+        if severity_meets_threshold(
+            severity=str(finding.get("severity", "")),
+            threshold=notify_severity,
+        )
+    ]
+
+    if not alert_findings:
+        logger.info(
+            "No findings met the notification threshold: %s",
+            notify_severity,
+        )
+        return
+
+    severity_count = {
+        "critical": 0,
+        "high": 0,
+        "medium": 0,
+        "low": 0,
+    }
+
+    for finding in alert_findings:
+        severity = finding.get("severity")
+
+        if severity in severity_count:
+            severity_count[severity] += 1
+
+    top_findings = alert_findings[:5]
+
+    finding_lines = []
+
+    for finding in top_findings:
+        finding_lines.append(
+            f"- [{str(finding.get('severity', 'unknown')).upper()}] "
+            f"{finding.get('resource_name', 'unknown-resource')} | "
+            f"{finding.get('control_id', 'unknown-control')}"
+        )
+
+    if len(alert_findings) > 5:
+        finding_lines.append(
+            f"- ...and {len(alert_findings) - 5} more finding(s)."
+        )
+
+    message = {
+        "username": "S3 Security Auditor",
+        "embeds": [
+            {
+                "title": "S3 Security Audit Alert",
+                "description": "Security findings were detected during the S3 audit.",
+                "color": 15158332,
+                "fields": [
+                    {
+                        "name": "Notification Threshold",
+                        "value": notify_severity.upper(),
+                        "inline": True,
+                    },
+                    {
+                        "name": "Findings Triggering Alert",
+                        "value": str(len(alert_findings)),
+                        "inline": True,
+                    },
+                    {
+                        "name": "Severity Summary",
+                        "value": (
+                            f"Critical: {severity_count['critical']}\n"
+                            f"High: {severity_count['high']}\n"
+                            f"Medium: {severity_count['medium']}\n"
+                            f"Low: {severity_count['low']}"
+                        ),
+                        "inline": False,
+                    },
+                    {
+                        "name": "Top Findings",
+                        "value": "\n".join(finding_lines)[:1000],
+                        "inline": False,
+                    },
+                ],
+            }
+        ],
+    }
+
+    try:
+        response = requests.post(
+            webhook_url,
+            json=message,
+            timeout=10,
+        )
+        response.raise_for_status()
+
+    except requests.RequestException as error:
+        raise AuditError("Failed to send Discord webhook alert.") from error
+
+    logger.info(
+        "Discord alert sent successfully. Findings sent: %s",
+        len(alert_findings),
+    )
+
+
 def main() -> int:
     """
     Main entry point for the S3 security audit CLI.
@@ -400,11 +563,21 @@ def main() -> int:
         inventory = load_infrastructure(args.input)
         findings = audit_s3_security_controls(inventory)
         save_findings(findings, args.output)
+
         print_summary(
             total_buckets=len(inventory),
             findings=findings,
             output_path=args.output,
         )
+
+        if args.webhook_url:
+            send_discord_alert(
+                webhook_url=args.webhook_url,
+                findings=findings,
+                notify_severity=args.notify_severity,
+            )
+        else:
+            logger.info("Discord webhook not configured. Skipping alert notification.")
 
         return 0
 

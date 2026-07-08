@@ -1,0 +1,17 @@
+[
+  {
+    "bucket_name": "prod-company-financials-2026",
+    "is_public": false,
+    "environment": "production"
+  },
+  {
+    "bucket_name": "marketing-public-logos",
+    "is_public": true,
+    "environment": "production"
+  },
+  {
+    "bucket_name": "stg-customer-pii-backup",
+    "is_public": true,
+    "environment": "staging"
+  }
+]

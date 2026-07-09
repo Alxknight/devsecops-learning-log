@@ -19,6 +19,17 @@ I'm documenting my transition from 2.5 years of security compliance work (questi
 
 ## Current Status
 
+### Week 2 In Progress 🔄 (July 9-15, 2026)
+
+Week 2 has officially started. The current focus is to continue strengthening Linux, security fundamentals, Python automation, testing practices, and AWS basics while improving the first portfolio project.
+
+**Week 2 Progress So Far:**
+- 🧪 **Pytest Coverage Added:** S3 Security Auditor now has automated unit tests
+- ✅ **Test Result:** 28 tests passing locally
+- ⚙️ **Pytest Configuration:** Added `pytest.ini` to solve local import path configuration
+- 🌿 **Branch Workflow Practice:** New feature work implemented through dedicated branches
+- 🔐 **Portfolio Project Improvement:** S3 Security Auditor is becoming more production-like
+
 ### Week 1 Complete ✅ (July 2-8, 2026)
 
 **Milestone Achievements:**
@@ -28,6 +39,7 @@ I'm documenting my transition from 2.5 years of security compliance work (questi
 - 📝 **Documentation:** 17+ comprehensive knowledge guides created
 - 💻 **Commands Mastered:** 50+ Linux commands with real-world context
 - 🚀 **First Portfolio Project:** S3 Security Auditor deployed
+- 🔔 **Discord Alerting:** Webhook notifications added for high-priority audit findings
 
 **Skills Acquired:**
 
@@ -56,12 +68,18 @@ I'm documenting my transition from 2.5 years of security compliance work (questi
 - Exception handling
 - Environment variable management
 - Virtual environments (venv, pip)
+- Automated unit testing with pytest
+- Test configuration with pytest.ini
+- Temporary file testing with tmp_path
+- Parametrized test cases with pytest.mark.parametrize
 
 *Cloud & DevOps:*
 - AWS CLI basics (EC2, S3 operations)
 - Azure CLI (SSH key management)
 - Git workflow (feature branches, merge practices)
 - SCP file transfers
+- Branch-based feature development
+- Test validation before merging changes
 
 ---
 
@@ -69,8 +87,8 @@ I'm documenting my transition from 2.5 years of security compliance work (questi
 
 ### 🔐 S3 Security Auditor
 
-**Status:** ✅ Functional MVP  
-**Folder:** [`auto-audit-script/`](./auto-audit-script/)  
+**Status:** ✅ Functional MVP + Discord Alerts + Pytest Coverage  
+**Folder:** [`python-projects/auto-audit-script/`](./python-projects/auto-audit-script/)  
 **Language:** Python 3
 
 A CLI tool that audits simulated AWS S3 bucket configurations and detects common cloud security misconfigurations.
@@ -85,6 +103,7 @@ A CLI tool that audits simulated AWS S3 bucket configurations and detects common
 - Generates structured JSON findings with severity prioritization
 - Maps findings to security frameworks (NIST CSF, ISO 27001, CIS AWS)
 - Sends Discord webhook alerts for high-priority issues
+- Runs automated tests to validate audit logic and input validation
 
 **Key Features:**
 - Professional logging instead of print statements
@@ -92,10 +111,13 @@ A CLI tool that audits simulated AWS S3 bucket configurations and detects common
 - Secure secret management via environment variables
 - Severity-based risk prioritization (critical/high/medium/low)
 - GRC-style finding generation with recommendations
+- Optional Discord webhook integration
+- Severity threshold filtering for notifications
+- Automated pytest coverage for core audit logic
 
 **Example Usage:**
 ```bash
-# Install dependencies
+# Install runtime dependencies
 pip install -r requirements.txt
 
 # Run basic audit
@@ -106,6 +128,39 @@ export DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/your-webhook"
 python audit.py --input infrastructure.example.json --output findings.example.json --notify-severity high
 ```
 
+**Testing:**
+```bash
+# Install development dependencies
+pip install -r requirements-dev.txt
+
+# Run tests
+pytest
+
+# Run tests with verbose output
+pytest -v
+```
+
+**Latest Test Result:**
+```text
+28 passed in 0.96s
+```
+
+**Test Coverage Includes:**
+- Public production bucket detection
+- Public staging bucket detection
+- Secure bucket behavior
+- Missing encryption detection
+- Missing versioning detection
+- Missing access logging detection
+- Invalid bucket object handling
+- Missing or invalid bucket name handling
+- Severity assignment logic
+- Notification severity threshold logic
+- Valid JSON loading
+- Missing file handling
+- Invalid JSON handling
+- Invalid JSON structure handling
+
 **Skills Demonstrated:**
 - Python CLI development with `argparse`
 - JSON processing and validation
@@ -115,19 +170,28 @@ python audit.py --input infrastructure.example.json --output findings.example.js
 - Framework mapping (simplified GRC approach)
 - Webhook integration
 - Environment-based configuration
+- Automated testing with pytest
+- Test parametrization
+- Temporary file testing
 - Git feature branch workflow
 
+**Implementation Branches Completed:**
+1. ✅ Production-ready S3 security auditor
+2. ✅ Discord webhook alerting
+3. ✅ Pytest coverage for S3 audit logic
+
 **Planned Enhancements:**
-1. ✅ Discord webhook alerting (completed!)
-2. Add pytest unit tests
-3. GitHub Actions CI/CD pipeline
-4. CSV export option
-5. Additional S3 security controls
-6. Real AWS integration with boto3
-7. Expand to IAM, EC2, Security Groups
+1. ✅ Discord webhook alerting (completed)
+2. ✅ Pytest unit tests (completed - 28 passing tests)
+3. Add mocked tests for Discord webhook behavior
+4. GitHub Actions CI/CD pipeline
+5. CSV export option
+6. Additional S3 security controls
+7. Real AWS integration with boto3
+8. Expand to IAM, EC2, Security Groups
 
 **Why This Project:**  
-Bridges my security compliance background with technical DevSecOps automation. Demonstrates understanding of cloud security controls, risk prioritization, and automated auditing—core skills for cloud security and DevSecOps roles.
+Bridges my security compliance background with technical DevSecOps automation. Demonstrates understanding of cloud security controls, risk prioritization, automated auditing, alerting, and professional software practices such as feature branching and automated testing—core skills for cloud security and DevSecOps roles.
 
 ---
 
@@ -149,11 +213,13 @@ Bridges my security compliance background with technical DevSecOps automation. D
 ## Roadmap
 
 ### Phase 1: Foundations (Months 1-3)
-**Status:** 🔄 In Progress - Week 1 of 12 complete
+**Status:** 🔄 In Progress - Week 2 of 12
 
 - [x] Week 1: Linux fundamentals intensive
 - [x] **Week 1 Bonus:** First Python portfolio project (S3 Security Auditor)
+- [x] **Week 1 Bonus:** Discord webhook alerting for S3 Security Auditor
 - [x] **Week 1 Bonus:** Bandit CTF levels 0-21 (security mindset development)
+- [x] **Week 2:** Pytest coverage for S3 Security Auditor
 - [ ] Week 2-4: Complete Bandit CTF, bash scripting, networking basics
 - [ ] Week 5-8: AWS basics (S3, IAM, EC2, CloudWatch)
 - [ ] Week 9-12: Git workflows, Docker fundamentals
@@ -180,8 +246,11 @@ Bridges my security compliance background with technical DevSecOps automation. D
 
 ## Week 2 Goals (July 9-15)
 
+**Status:** 🔄 In Progress
+
 - [ ] Complete Bandit CTF levels 22-34
-- [ ] Add pytest tests to S3 Security Auditor
+- [x] Add pytest tests to S3 Security Auditor
+- [ ] Add mocked tests for Discord webhook alerting
 - [ ] KodeKloud: Networking fundamentals module
 - [ ] AWS CLI hands-on: S3 and IAM operations
 - [ ] GitHub Actions CI/CD for S3 auditor (stretch goal)
@@ -190,16 +259,17 @@ Bridges my security compliance background with technical DevSecOps automation. D
 
 ## Progress Metrics
 
-| Metric | Week 1 | Month 1 Target |
-|--------|--------|----------------|
+| Metric | Current Progress | Month 1 Target |
+|--------|------------------|----------------|
 | CTF Challenges | 21 | 34 (all Bandit) |
 | Labs Completed | 11 | 20 |
 | Guides Created | 17+ | 25 |
 | Portfolio Projects | 1 ✅ | 1-2 |
+| Automated Tests | 28 ✅ | 30+ |
 | GitHub Commits | ~70+ | 100 |
-| Learning Hours | ~28 | 48 |
+| Learning Hours | ~28+ | 48 |
 
-**Week 1 Analysis:** Exceeded hourly target by 150%+ due to high engagement with CTF challenges and first project. This pace is sustainable with current momentum.
+**Progress Analysis:** Week 1 exceeded the original hourly target due to high engagement with CTF challenges and the first project. Week 2 has started with a strong professional improvement: automated pytest coverage for the S3 Security Auditor.
 
 ---
 
@@ -268,6 +338,42 @@ chmod 600 keyfile
 ./setuid-binary command
 ```
 
+### Python Testing
+```bash
+# Install development dependencies
+pip install -r requirements-dev.txt
+
+# Run pytest
+pytest
+
+# Run pytest with verbose output
+pytest -v
+
+# Create pytest configuration
+cat > pytest.ini << 'EOF'
+[pytest]
+pythonpath = .
+testpaths = tests
+EOF
+```
+
+### Git Branch Workflow
+```bash
+# Create and switch to a feature branch
+git switch -c feature/add-pytest-coverage
+
+# Check current branch and changes
+git status
+git branch
+
+# Stage and commit changes
+git add .
+git commit -m "Add pytest coverage for S3 audit logic"
+
+# Push branch to GitHub
+git push -u origin feature/add-pytest-coverage
+```
+
 ---
 
 ## Skills Inventory
@@ -303,7 +409,7 @@ chmod 600 keyfile
 
 ### Python
 **Level:** Intermediate Beginner  
-**Evidence:** S3 Security Auditor project
+**Evidence:** S3 Security Auditor project with Discord alerting and pytest coverage
 
 - ✅ CLI development with argparse
 - ✅ JSON file processing
@@ -311,7 +417,11 @@ chmod 600 keyfile
 - ✅ HTTP requests and webhook integration
 - ✅ Environment variable management
 - ✅ File I/O operations
-- 📋 Testing with pytest (planned)
+- ✅ Testing with pytest
+- ✅ Test parametrization
+- ✅ Input validation testing
+- ✅ Temporary file testing with tmp_path
+- 📋 Mocking external services (planned)
 - 📋 boto3 for AWS (planned)
 
 ### Cloud Security
@@ -322,28 +432,31 @@ chmod 600 keyfile
 - ✅ Risk prioritization by severity
 - ✅ Cloud security best practices
 - ✅ Security finding generation
+- ✅ Alerting for high-priority security findings
 - 📋 IAM policies and permissions (in progress)
 - 📋 AWS security services (planned)
 
 ### Git & Version Control
 **Level:** Intermediate Beginner  
-**Evidence:** Feature branch workflow, daily commits
+**Evidence:** Feature branch workflow, daily commits, branch-based implementation work
 
 - ✅ Basic workflows (add, commit, push, pull)
 - ✅ Feature branch development
 - ✅ Merge practices
 - ✅ .gitignore and secret management
+- ✅ Branch-based implementation workflow
 - 📋 Pull request workflow (planned)
 - 📋 Git rebase (planned)
 
 ### DevSecOps Concepts
 **Level:** Learning  
-**Evidence:** Security automation project, GRC background
+**Evidence:** Security automation project, webhook alerting, pytest coverage, GRC background
 
 - ✅ Security control automation
 - ✅ Finding generation and remediation guidance
 - ✅ Framework mapping (NIST, ISO, CIS)
 - ✅ Webhook alerting for security events
+- ✅ Automated test validation for security logic
 - ✅ Privilege escalation awareness
 - 📋 CI/CD security integration (planned)
 - 📋 Secret scanning (planned)
@@ -360,6 +473,8 @@ chmod 600 keyfile
 - ✅ Daily consistency (even 1-2 hours makes progress)
 - ✅ **Project-based learning accelerates skill acquisition**
 - ✅ **Problem-solving mindset through Bandit CTF**
+- ✅ **Feature branches make new implementations safer**
+- ✅ **Automated tests increase confidence before merging changes**
 
 **Approach:**
 - Hands-on practice over theory
@@ -369,6 +484,8 @@ chmod 600 keyfile
 - Connect everything to DevSecOps context
 - **Ship small projects early to validate learning**
 - **Security-first thinking in all exercises**
+- **Use branches for every meaningful implementation**
+- **Add tests as projects become more realistic**
 
 ---
 
@@ -377,6 +494,7 @@ chmod 600 keyfile
 ### What Went Well
 - Exceeded learning hour target (28 vs 12 planned)
 - Completed first portfolio project ahead of schedule
+- Added Discord alerting to make the project more realistic
 - Bandit CTF proved highly engaging and educational
 - Multi-platform strategy working excellently
 - Security mindset developing naturally through CTF
@@ -387,18 +505,48 @@ chmod 600 keyfile
 - **setuid is powerful:** Privilege escalation concepts clarified
 - **Remote SSH execution:** Opens automation possibilities
 - **Python isn't scary:** Built working CLI tool from beginner level
+- **Webhooks add operational value:** Alerts make security findings actionable
+- **Branch workflow is safer:** Feature branches isolate changes before merge
 
 ### Challenges Overcome
 - WSL permission issues with SSH keys (solved with filesystem migration)
 - OpenSSL noise in output (learned -quiet flag)
 - Understanding setuid behavior (researched and practiced)
 - Bandit Level 18 shell trap (learned remote execution workaround)
+- Discord webhook secret handling (solved with environment variables)
 
 ### Momentum Factors
 - Security-focused challenges > generic tutorials
 - Real problems > synthetic exercises
 - Building something useful > following recipes
 - Weekend deep dives = maximum productivity
+- Small portfolio improvements compound quickly
+
+---
+
+## Week 2 Notes
+
+### What Has Started Well
+- Added automated tests early in the week
+- Validated project logic with 28 passing tests
+- Solved pytest local import issue using `pytest.ini`
+- Continued using feature branches for clean implementation work
+
+### Current Technical Learning
+- Pytest test structure
+- Parametrized test cases
+- Temporary file testing with `tmp_path`
+- Local Python import path configuration
+- Testing security control logic before adding more features
+
+### Next Recommended Implementation
+The next professional improvement should be a new branch for mocked Discord webhook tests:
+
+```bash
+git switch -c feature/test-discord-webhook-alerts
+```
+
+This would demonstrate how to test external integrations without sending real messages to Discord.
 
 ---
 
@@ -419,6 +567,7 @@ This learning log is for personal documentation. Code projects are shared freely
 
 ---
 
-**Last Updated:** July 8, 2026  
+**Last Updated:** July 9, 2026  
+**Current Week:** Week 2 in progress (July 9-15, 2026)  
 **Next Milestone:** Complete Month 1 foundations (July 31, 2026)  
-**Momentum:** Exceptional - Week 1 crushed expectations! 21 CTF levels + first project deployed 🚀
+**Momentum:** Strong - Week 2 started with 28 passing tests added to the first portfolio project 🚀

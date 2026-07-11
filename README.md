@@ -30,10 +30,24 @@ Week 2 has officially started. The current focus is to continue strengthening Li
 - 🌿 **Branch Workflow Practice:** New feature work implemented through dedicated branches
 - 🔐 **Portfolio Project Improvement:** S3 Security Auditor is becoming more production-like
 
+
+
+### Week 2 Additional Milestones (July 10)
+
+- ✅ **Bandit CTF:** Advanced from levels **21 → 25**
+- ✅ **KodeKloud:** Completed additional Linux, Git, AWS, Azure and MLOps/Jupyter labs
+- ✅ **Linux Administration:** User expiration, supplementary groups, SSH hardening with `PermitRootLogin no`
+- ✅ **Git:** Cloned bare repositories and practiced remote repository workflows
+- ✅ **AWS:** Created Security Groups using AWS CLI
+- ✅ **Azure:** Provisioned Ubuntu VM using Azure CLI and troubleshot authorization issues
+- ✅ **MLOps:** Diagnosed and repaired JupyterLab configuration and networking issues
+- ✅ **Bash Automation:** First custom shell script executed through cron
+- ✅ **Security:** Automated brute force exercise with `seq`, `for`, `nc` and `grep` in a controlled environment
+
 ### Week 1 Complete ✅ (July 2-8, 2026)
 
 **Milestone Achievements:**
-- 🎯 **Bandit CTF:** Levels 0-21 completed (21 security challenges!)
+- 🎯 **Bandit CTF:** Levels 0-21 completed (25 security challenges!)
 - 🛠️ **KodeKloud:** 7 hands-on labs completed
 - 📚 **Multi-platform learning:** KillerCoda, LabEx, Exercism rotation established
 - 📝 **Documentation:** 17+ comprehensive knowledge guides created
@@ -199,7 +213,7 @@ Bridges my security compliance background with technical DevSecOps automation. D
 
 | Platform | Status | Focus Area | Progress |
 |----------|--------|------------|----------|
-| [Bandit CTF](https://overthewire.org/wargames/bandit/) | ✅ Active | Security challenges | 21/34 levels |
+| [Bandit CTF](https://overthewire.org/wargames/bandit/) | ✅ Active | Security challenges | 25/34 levels |
 | [KodeKloud](https://kodekloud.com) | ✅ Active | System administration | 7 labs |
 | [KillerCoda](https://killercoda.com) | ✅ Active | Interactive scenarios | 2 lessons |
 | [LabEx](https://labex.io) | ✅ Active | Hands-on Linux labs | 4 labs |
@@ -218,7 +232,7 @@ Bridges my security compliance background with technical DevSecOps automation. D
 - [x] Week 1: Linux fundamentals intensive
 - [x] **Week 1 Bonus:** First Python portfolio project (S3 Security Auditor)
 - [x] **Week 1 Bonus:** Discord webhook alerting for S3 Security Auditor
-- [x] **Week 1 Bonus:** Bandit CTF levels 0-21 (security mindset development)
+- [x] **Week 1 Bonus:** Bandit CTF levels 0-25 (security mindset development)
 - [x] **Week 2:** Pytest coverage for S3 Security Auditor
 - [ ] Week 2-4: Complete Bandit CTF, bash scripting, networking basics
 - [ ] Week 5-8: AWS basics (S3, IAM, EC2, CloudWatch)
@@ -262,7 +276,7 @@ Bridges my security compliance background with technical DevSecOps automation. D
 | Metric | Current Progress | Month 1 Target |
 |--------|------------------|----------------|
 | CTF Challenges | 21 | 34 (all Bandit) |
-| Labs Completed | 11 | 20 |
+| Labs Completed | 17 | 20 |
 | Guides Created | 17+ | 25 |
 | Portfolio Projects | 1 ✅ | 1-2 |
 | Automated Tests | 28 ✅ | 30+ |
@@ -380,7 +394,7 @@ git push -u origin feature/add-pytest-coverage
 
 ### Linux & Command Line
 **Level:** Intermediate Beginner  
-**Evidence:** 21 Bandit CTF levels, 7 KodeKloud labs, 50+ commands documented
+**Evidence:** 21 Bandit CTF levels, 13 KodeKloud labs, 50+ commands documented
 
 - ✅ File system navigation and operations
 - ✅ Package management (RHEL and Debian families)
@@ -396,7 +410,7 @@ git push -u origin feature/add-pytest-coverage
 
 ### Security Tools
 **Level:** Foundational  
-**Evidence:** Bandit CTF levels 0-21
+**Evidence:** Bandit CTF levels 0-25
 
 - ✅ Port scanning (nmap)
 - ✅ SSL/TLS connections (openssl)
@@ -571,3 +585,38 @@ This learning log is for personal documentation. Code projects are shared freely
 **Current Week:** Week 2 in progress (July 9-15, 2026)  
 **Next Milestone:** Complete Month 1 foundations (July 31, 2026)  
 **Momentum:** Strong - Week 2 started with 28 passing tests added to the first portfolio project 🚀
+
+
+---
+
+## Week 2 Technical Highlights (Updated)
+
+### New KodeKloud Skills
+- Linux user lifecycle management (`useradd -e`, `chage`)
+- Supplementary groups with `usermod -aG`
+- SSH hardening and configuration auditing using `grep` and `sed`
+- Git bare repository cloning
+- AWS Security Group creation with AWS CLI
+- Azure VM provisioning with Azure CLI
+- JupyterLab troubleshooting (ports, root directory, services)
+- Service validation using `ss`, `systemctl` and process inspection
+
+### Bandit CTF Progress (Levels 21–25)
+
+**New concepts mastered:**
+- Cron job auditing
+- Reading and understanding automation scripts
+- Dynamic file generation with `md5sum`
+- Writing executable Bash scripts
+- File permission management with `chmod`
+- Secure temporary workspace usage
+- Bash automation (`for`, `seq`, pipes)
+- Netcat communication with local daemons
+- Controlled brute-force automation
+- Thinking like both an attacker and defender by analyzing automation, permissions and exposed secrets
+
+### Updated Progress
+- **Bandit:** 25 / 34 levels completed
+- **KodeKloud Labs:** 13 completed
+- **Portfolio Project:** 1 production-style project with testing
+- **Python Tests:** 28 passing

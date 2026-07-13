@@ -7,7 +7,9 @@ from audit import (
     AuditError,
     audit_s3_security_controls,
     determine_severity,
+    has_findings_at_or_above_threshold,
     load_infrastructure,
+    main,
     send_discord_alert,
     severity_meets_threshold,
 )
@@ -360,3 +362,81 @@ def test_send_discord_alert_skips_empty_webhook_url(monkeypatch):
     )
 
     assert post_was_called is False
+
+def test_has_findings_at_or_above_threshold_returns_true_for_matching_finding():
+    findings = [
+        {
+            "resource_name": "prod-customer-data",
+            "control_id": "S3_PUBLIC_ACCESS_DISABLED",
+            "severity": "critical",
+        }
+    ]
+
+    result = has_findings_at_or_above_threshold(
+        findings=findings,
+        threshold="high",
+    )
+
+    assert result is True
+
+
+def test_has_findings_at_or_above_threshold_returns_false_when_below_threshold():
+    findings = [
+        {
+            "resource_name": "dev-temp-files",
+            "control_id": "S3_ACCESS_LOGGING_ENABLED",
+            "severity": "low",
+        }
+    ]
+
+    result = has_findings_at_or_above_threshold(
+        findings=findings,
+        threshold="high",
+    )
+
+    assert result is False
+
+
+def test_has_findings_at_or_above_threshold_returns_false_for_empty_findings():
+    result = has_findings_at_or_above_threshold(
+        findings=[],
+        threshold="critical",
+    )
+
+    assert result is False
+
+
+def test_main_returns_exit_code_2_when_fail_threshold_is_met(tmp_path, monkeypatch):
+    input_file = tmp_path / "infrastructure.json"
+    output_file = tmp_path / "findings.json"
+
+    data = [
+        {
+            "bucket_name": "prod-customer-data",
+            "environment": "production",
+            "is_public": True,
+            "encryption_enabled": True,
+            "versioning_enabled": True,
+            "logging_enabled": True,
+        }
+    ]
+
+    input_file.write_text(json.dumps(data), encoding="utf-8")
+
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "audit.py",
+            "--input",
+            str(input_file),
+            "--output",
+            str(output_file),
+            "--fail-on-severity",
+            "high",
+        ],
+    )
+
+    exit_code = main()
+
+    assert exit_code == 2
+    assert output_file.exists()

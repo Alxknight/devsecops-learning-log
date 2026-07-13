@@ -1,4 +1,5 @@
 import argparse
+import csv
 import json
 import logging
 import os
@@ -42,6 +43,14 @@ def parse_args() -> argparse.Namespace:
         required=False,
         default="findings.json",
         help="Path where audit findings will be saved. Default: findings.json",
+    )
+
+    parser.add_argument(
+        "--output-format",
+        required=False,
+        default="json",
+        choices=["json", "csv"],
+        help="Output format for audit findings. Default: json.",
     )
 
     parser.add_argument(
@@ -399,13 +408,13 @@ def audit_s3_security_controls(buckets: list[dict[str, Any]]) -> list[dict[str, 
     return findings
 
 
-def save_findings(findings: list[dict[str, Any]], output_path: str) -> None:
+def save_findings_as_json(findings: list[dict[str, Any]], output_path: str) -> None:
     """
     Save audit findings to a JSON file.
 
     Args:
         findings: List of structured audit findings.
-        output_path: Path where the findings file will be written.
+        output_path: Path where the JSON findings file will be written.
 
     Raises:
         AuditError: If the findings file cannot be written.
@@ -417,7 +426,86 @@ def save_findings(findings: list[dict[str, Any]], output_path: str) -> None:
             json.dump(findings, file, indent=2, ensure_ascii=False)
 
     except OSError as error:
-        raise AuditError(f"Could not write findings file: {output_path}") from error
+        raise AuditError(f"Could not write JSON findings file: {output_path}") from error
+
+
+def save_findings_as_csv(findings: list[dict[str, Any]], output_path: str) -> None:
+    """
+    Save audit findings to a CSV file.
+
+    Args:
+        findings: List of structured audit findings.
+        output_path: Path where the CSV findings file will be written.
+
+    Raises:
+        AuditError: If the findings file cannot be written.
+    """
+    path = Path(output_path)
+
+    fieldnames = [
+        "resource_type",
+        "resource_name",
+        "environment",
+        "control_id",
+        "status",
+        "severity",
+        "message",
+        "recommendation",
+        "framework_mapping",
+    ]
+
+    try:
+        with path.open("w", encoding="utf-8", newline="") as file:
+            writer = csv.DictWriter(file, fieldnames=fieldnames)
+            writer.writeheader()
+
+            for finding in findings:
+                row = {
+                    "resource_type": finding.get("resource_type", ""),
+                    "resource_name": finding.get("resource_name", ""),
+                    "environment": finding.get("environment", ""),
+                    "control_id": finding.get("control_id", ""),
+                    "status": finding.get("status", ""),
+                    "severity": finding.get("severity", ""),
+                    "message": finding.get("message", ""),
+                    "recommendation": finding.get("recommendation", ""),
+                    "framework_mapping": json.dumps(
+                        finding.get("framework_mapping", {}),
+                        ensure_ascii=False,
+                    ),
+                }
+
+                writer.writerow(row)
+
+    except OSError as error:
+        raise AuditError(f"Could not write CSV findings file: {output_path}") from error
+
+
+def save_findings(
+    findings: list[dict[str, Any]],
+    output_path: str,
+    output_format: str = "json",
+) -> None:
+    """
+    Save audit findings using the selected output format.
+
+    Args:
+        findings: List of structured audit findings.
+        output_path: Path where the findings file will be written.
+        output_format: Output format. Supported values: json, csv.
+
+    Raises:
+        ValueError: If the output format is not supported.
+    """
+    if output_format == "json":
+        save_findings_as_json(findings=findings, output_path=output_path)
+        return
+
+    if output_format == "csv":
+        save_findings_as_csv(findings=findings, output_path=output_path)
+        return
+
+    raise ValueError(f"Unsupported output format: {output_format}")
 
 
 def print_summary(
@@ -590,7 +678,11 @@ def main() -> int:
     try:
         inventory = load_infrastructure(args.input)
         findings = audit_s3_security_controls(inventory)
-        save_findings(findings, args.output)
+        save_findings(
+            findings=findings,
+            output_path=args.output,
+            output_format=args.output_format,
+        )
 
         print_summary(
             total_buckets=len(inventory),

@@ -8,7 +8,7 @@
 
 This repository documents my transition from **Security Compliance / GRC** into hands-on **DevSecOps, Cloud Security, and SRE-style engineering**.
 
-The repository is now being organized around **portfolio-ready projects** instead of loose practice files.
+The repository is being organized around **portfolio-ready projects**, structured CTF notes, and reproducible learning artifacts instead of loose practice files.
 
 > **Repository cleanup note:** The old `week-01/` practice folder was removed to keep the repository cleaner and focused on stronger project work.
 
@@ -19,7 +19,7 @@ The repository is now being organized around **portfolio-ready projects** instea
 ### Week 2 In Progress 🔄  
 **Dates:** July 9-15, 2026
 
-Week 2 is focused on improving the quality and professionalism of the first portfolio projects.
+Week 2 is focused on improving the quality and professionalism of the first portfolio projects while completing foundational Linux/security practice through Bandit CTF.
 
 ### Week 2 Progress So Far
 
@@ -30,8 +30,11 @@ Week 2 is focused on improving the quality and professionalism of the first port
 - ✅ Improved **Webhook Validator SecOps** with Docker build and smoke test in GitHub Actions
 - ✅ Updated GitHub Actions versions to avoid Node.js 20 deprecation warnings
 - ✅ Continued branch-based development for cleaner implementation history
-- ✅ Advanced Bandit CTF progress to **25/34 levels**
+- ✅ Completed available **OverTheWire Bandit CTF** levels through `bandit33`
+- ✅ Documented advanced Bandit concepts for README and study database updates
 - ✅ Continued KodeKloud Linux, Git, AWS, Azure, and MLOps/Jupyter labs
+
+> **Bandit completion note:** Bandit level 34 does not currently exist, so `bandit33` represents the current end of the available Bandit wargame path.
 
 ---
 
@@ -42,6 +45,9 @@ devsecops-learning-log/
 ├── .github/
 │   └── workflows/
 │       └── webhook-validator-ci.yml
+├── ctf/
+│   └── bandit/
+│       └── bandit-final-notes.md
 ├── python-projects/
 │   ├── auto-audit-script/
 │   │   ├── audit.py
@@ -123,7 +129,10 @@ Run with Discord alerts:
 
 ```bash
 export DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/your-webhook"
-python audit.py   --input infrastructure.example.json   --output findings.example.json   --notify-severity high
+python audit.py \
+  --input infrastructure.example.json \
+  --output findings.example.json \
+  --notify-severity high
 ```
 
 ### Testing
@@ -237,7 +246,10 @@ docker build -t webhook-validator:local .
 Run container:
 
 ```bash
-docker run --rm   -p 8000:8000   -e WEBHOOK_SECRET=dev-secret   webhook-validator:local
+docker run --rm \
+  -p 8000:8000 \
+  -e WEBHOOK_SECRET=dev-secret \
+  webhook-validator:local
 ```
 
 Smoke test:
@@ -298,11 +310,122 @@ Planned work:
 
 ---
 
+## 3. CTF Practice — OverTheWire Bandit
+
+**Status:** ✅ Completed available levels through `bandit33`  
+**Folder:** `ctf/bandit/`  
+**Focus:** Linux Security / DevSecOps Foundations / Git Security / Shell Escapes
+
+### What It Is
+
+OverTheWire Bandit is a Linux security wargame focused on practical command-line problem solving. It builds foundational skills for security engineering, DevSecOps, system administration, and troubleshooting.
+
+I completed the available Bandit path through `bandit33`. Level 34 does not currently exist, so `bandit33` represents the current end of the wargame.
+
+### Main Skills Practiced
+
+- Linux file navigation and permissions
+- SSH login and remote command execution
+- SSH private key handling
+- WSL/Linux permission troubleshooting
+- Port scanning with `nmap`
+- SSL/TLS service interaction with `openssl s_client`
+- Netcat listeners and local daemon communication
+- `setuid` binaries and privilege boundaries
+- Cron job auditing in `/etc/cron.d/`
+- Reading and writing shell scripts
+- Brute force automation in a controlled lab
+- Shell escapes through `more`, `vi`, and restricted shells
+- Git repository auditing across history, branches, and tags
+- Git workflow with `add`, `commit`, and `push`
+
+### Advanced Concepts Covered
+
+#### Linux and Security
+
+- Compared files with `diff` to identify changed secrets.
+- Used `setuid` binaries to understand privilege delegation.
+- Audited cron jobs to identify automated scripts exposing secrets.
+- Created a custom shell script executed by a scheduled process.
+- Used `seq`, `for`, pipes, `nc`, and `grep -v` for controlled brute force automation.
+
+#### SSH and Shell Escapes
+
+- Copied private keys safely with `scp`.
+- Fixed WSL permission issues by storing keys inside the Linux filesystem.
+- Escaped from `more` into `vi`, then from `vi` into Bash.
+- Escaped an uppercase-restricted shell using `$0`.
+
+#### Git Security
+
+- Cloned repositories over SSH using a custom port.
+- Found secrets in Git history using `git log -p` and `git show`.
+- Reviewed remote branches with `git branch -a`.
+- Reviewed tags with `git tag` and `git show`.
+- Forced a tracked file through `.gitignore` using `git add -f`.
+- Completed a full Git workflow with `commit` and `push`.
+
+### DevSecOps Lessons
+
+Bandit reinforced several real-world DevSecOps lessons:
+
+- Secrets should never be committed to Git, even temporarily.
+- Git history, branches, tags, and metadata must be included in repository audits.
+- Cron jobs and automation scripts can accidentally expose sensitive data.
+- `setuid` binaries are powerful and dangerous when misconfigured.
+- Services need rate limiting and brute force protections.
+- Restricted shells must be configured carefully because interactive programs may allow escapes.
+- Reading scripts written by others is a critical security and operations skill.
+
+### Commands Reinforced
+
+```bash
+ls
+cat
+grep
+cut
+chmod
+nano
+whoami
+id
+pwd
+diff
+seq
+for
+echo
+ssh
+scp
+nmap
+openssl s_client
+nc
+cron
+git clone
+git log -p
+git show
+git branch -a
+git tag
+git add -f
+git commit
+git push
+```
+
+### Documentation Note
+
+The detailed notes should be stored as:
+
+```text
+ctf/bandit/bandit-final-notes.md
+```
+
+No real Bandit passwords should be committed to this repository. The notes should document concepts, commands, troubleshooting steps, and lessons learned without exposing actual secrets.
+
+---
+
 ## Learning Platforms
 
 | Platform | Status | Focus Area | Progress |
 |---|---|---|---|
-| Bandit CTF | ✅ Active | Security challenges | 25/34 levels |
+| Bandit CTF | ✅ Completed available path | Linux security, Git security, shell escapes | Completed through `bandit33` |
 | KodeKloud | ✅ Active | Linux, cloud, DevOps labs | 13+ labs |
 | KillerCoda | ✅ Active | Interactive scenarios | 2 lessons |
 | LabEx | ✅ Active | Hands-on Linux labs | 4 labs |
@@ -319,6 +442,7 @@ Planned work:
 
 - [x] Linux fundamentals
 - [x] Bandit CTF levels 0-25
+- [x] Bandit CTF levels 26-33
 - [x] First Python security automation project
 - [x] Discord webhook alerting
 - [x] Pytest coverage for S3 Security Auditor
@@ -326,10 +450,11 @@ Planned work:
 - [x] Dockerized Webhook Validator
 - [x] GitHub Actions CI for tests
 - [x] Docker build and smoke test in CI
-- [ ] Complete Bandit CTF levels 26-34
 - [ ] Add Trivy image scanning
 - [ ] Continue AWS CLI and IAM practice
 - [ ] Start Kubernetes fundamentals with K3s or Minikube
+
+> Bandit level 34 is not currently available, so the Bandit CTF milestone is complete for the available path.
 
 ### Phase 2: Automation & Infrastructure  
 **Months 4-6**
@@ -364,7 +489,7 @@ Planned work:
 **Dates:** July 9-15, 2026  
 **Status:** 🔄 In Progress
 
-- [ ] Complete Bandit CTF levels 26-34
+- [x] Complete Bandit CTF available levels through `bandit33`
 - [x] Add pytest tests to S3 Security Auditor
 - [ ] Add mocked tests for Discord webhook alerts
 - [x] Update Webhook Validator CI with Docker build and smoke test
@@ -379,9 +504,10 @@ Planned work:
 
 | Metric | Current Progress | Month 1 Target |
 |---|---:|---:|
-| Bandit CTF Challenges | 25/34 | 34/34 |
+| Bandit CTF Challenges | Completed through `bandit33` | Complete available path |
 | KodeKloud Labs | 13+ | 20 |
 | Portfolio Projects | 2 | 2 |
+| CTF Documentation Sets | 1 | 1 |
 | Automated Tests | 32+ | 35+ |
 | Dockerized Projects | 1 | 2 |
 | CI/CD Pipelines | 1 | 2 |
@@ -419,6 +545,8 @@ Planned work:
 - ✅ Workflow path filters
 - ✅ Git branch workflow
 - ✅ Cleaning obsolete files safely
+- ✅ Git over SSH with custom ports
+- ✅ Git history, branch, and tag inspection
 - 🔄 Trivy vulnerability scanning
 - 📋 Kubernetes deployment with K3s or Minikube
 
@@ -431,6 +559,9 @@ Planned work:
 - ✅ Secret handling with environment variables
 - ✅ Basic CI/CD security practices
 - ✅ Docker security basics
+- ✅ Secret exposure analysis in Git repositories
+- ✅ Cron job and automation auditing
+- ✅ Controlled brute force awareness in lab context
 - 🔄 Image vulnerability scanning
 - 📋 AWS IAM and EC2 security basics
 
@@ -439,11 +570,15 @@ Planned work:
 - ✅ File permissions
 - ✅ User and group management
 - ✅ SSH hardening
+- ✅ SSH private key handling
 - ✅ Cron job auditing
 - ✅ Bash automation
 - ✅ Netcat and OpenSSL usage
 - ✅ Port scanning with Nmap
 - ✅ Controlled brute-force automation in CTF context
+- ✅ `setuid` binary analysis
+- ✅ Shell escapes using `more`, `vi`, and `$0`
+- ✅ WSL/Linux permission troubleshooting
 
 ---
 
@@ -457,6 +592,7 @@ Examples:
 git switch -c feature/discord-webhook-alerts
 git switch -c feature/add-pytest-coverage
 git switch -c chore/remove-obsolete-week-01
+git switch -c docs/add-bandit-final-notes
 ```
 
 Repository cleanup flow:
@@ -468,6 +604,16 @@ rm -rf week-01
 git add -A week-01
 git commit -m "Remove obsolete week 1 practice files"
 git push -u origin chore/remove-obsolete-week-01
+```
+
+Bandit documentation update flow:
+
+```bash
+mkdir -p ctf/bandit
+cp bandit-final-notes.md ctf/bandit/bandit-final-notes.md
+git add README.md ctf/bandit/bandit-final-notes.md
+git commit -m "Document completed Bandit CTF progress"
+git push
 ```
 
 This keeps `main` cleaner and makes every repository change easier to review.
@@ -484,6 +630,10 @@ This keeps `main` cleaner and makes every repository change easier to review.
 
 > I built a FastAPI microservice that validates incoming webhooks using HMAC SHA-256. The value of the project is the end-to-end DevSecOps workflow: tests with pytest, Docker packaging, non-root container execution, GitHub Actions CI, Docker image build, and a smoke test that verifies the container responds correctly before future deployment.
 
+### Bandit CTF Practice
+
+> I completed the available OverTheWire Bandit levels through bandit33 and documented the technical lessons. The work strengthened my Linux security fundamentals through SSH, permissions, setuid binaries, cron jobs, shell scripting, Netcat, OpenSSL, brute force automation in a controlled lab, Git repository auditing, and shell escapes. I treated the CTF as structured DevSecOps practice by documenting concepts, commands, mistakes, and security lessons without committing real passwords.
+
 ### What These Projects Demonstrate Together
 
 Together, these projects show that I can:
@@ -495,6 +645,8 @@ Together, these projects show that I can:
 - Create CI/CD workflows
 - Add basic security gates
 - Manage secrets safely
+- Audit repositories for secret exposure patterns
+- Analyze Linux permissions and automation risks
 - Work through branches like a real engineering workflow
 - Explain both the technical and security value of what I build
 
@@ -515,6 +667,7 @@ Every meaningful project should have:
 - Security considerations
 - Git branch history
 - Next-step roadmap
+- Study notes that explain concepts, not just commands
 ```
 
 ---
@@ -530,4 +683,4 @@ Code projects are shared freely for educational purposes.
 **Last Updated:** July 13, 2026  
 **Current Week:** Week 2 in progress  
 **Next Milestone:** Trivy scan in Webhook Validator CI  
-**Momentum:** Strong — the repository now focuses on portfolio-ready DevSecOps projects instead of loose practice files.
+**Momentum:** Strong — Bandit CTF available levels are complete, and the repository now focuses on portfolio-ready DevSecOps projects, structured documentation, and security automation.

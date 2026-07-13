@@ -59,6 +59,13 @@ def parse_args() -> argparse.Namespace:
         help="Minimum severity required to send a Discord alert. Default: high.",
     )
 
+    parser.add_argument(
+        "--fail-on-severity",
+        required=False,
+        choices=["low", "medium", "high", "critical"],
+        help="Exit with code 2 if findings meet or exceed this severity.",
+    )
+
     return parser.parse_args()
 
 
@@ -192,6 +199,27 @@ def severity_meets_threshold(severity: str, threshold: str) -> bool:
 
     return severity_order.get(severity, 0) >= severity_order.get(threshold, 3)
 
+def has_findings_at_or_above_threshold(
+    findings: list[dict[str, Any]],
+    threshold: str,
+) -> bool:
+    """
+    Check whether any finding meets or exceeds the configured threshold.
+
+    Args:
+        findings: List of structured audit findings.
+        threshold: Minimum severity that should trigger a failure.
+
+    Returns:
+        True if at least one finding meets or exceeds the threshold.
+    """
+    return any(
+        severity_meets_threshold(
+            severity=str(finding.get("severity", "")),
+            threshold=threshold,
+        )
+        for finding in findings
+    )
 
 def audit_s3_security_controls(buckets: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """
@@ -578,6 +606,16 @@ def main() -> int:
             )
         else:
             logger.info("Discord webhook not configured. Skipping alert notification.")
+
+        if args.fail_on_severity and has_findings_at_or_above_threshold(
+            findings=findings,
+            threshold=args.fail_on_severity,
+        ):
+            logger.error(
+                "Audit failed because findings met or exceeded severity threshold: %s",
+                args.fail_on_severity,
+            )
+            return 2
 
         return 0
 

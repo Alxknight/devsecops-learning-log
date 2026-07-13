@@ -10,6 +10,7 @@ from audit import (
     has_findings_at_or_above_threshold,
     load_infrastructure,
     main,
+    save_findings,
     send_discord_alert,
     severity_meets_threshold,
 )
@@ -440,3 +441,122 @@ def test_main_returns_exit_code_2_when_fail_threshold_is_met(tmp_path, monkeypat
 
     assert exit_code == 2
     assert output_file.exists()
+
+def test_save_findings_writes_csv_output(tmp_path):
+    output_file = tmp_path / "findings.csv"
+
+    findings = [
+        {
+            "resource_type": "aws_s3_bucket",
+            "resource_name": "prod-customer-data",
+            "environment": "production",
+            "control_id": "S3_PUBLIC_ACCESS_DISABLED",
+            "status": "failed",
+            "severity": "critical",
+            "message": "S3 bucket is publicly accessible.",
+            "recommendation": "Disable public access.",
+            "framework_mapping": {
+                "nist_csf": "PR.DS - Data Security",
+                "iso_27001": "A.8 - Technology Controls",
+                "cis_aws": "S3 security best practices",
+            },
+        }
+    ]
+
+    save_findings(
+        findings=findings,
+        output_path=str(output_file),
+        output_format="csv",
+    )
+
+    content = output_file.read_text(encoding="utf-8")
+
+    assert output_file.exists()
+    assert "resource_type,resource_name,environment" in content
+    assert "aws_s3_bucket" in content
+    assert "prod-customer-data" in content
+    assert "S3_PUBLIC_ACCESS_DISABLED" in content
+    assert "critical" in content
+
+
+def test_save_findings_writes_json_output(tmp_path):
+    output_file = tmp_path / "findings.json"
+
+    findings = [
+        {
+            "resource_type": "aws_s3_bucket",
+            "resource_name": "prod-customer-data",
+            "environment": "production",
+            "control_id": "S3_PUBLIC_ACCESS_DISABLED",
+            "status": "failed",
+            "severity": "critical",
+            "message": "S3 bucket is publicly accessible.",
+            "recommendation": "Disable public access.",
+            "framework_mapping": {
+                "nist_csf": "PR.DS - Data Security",
+            },
+        }
+    ]
+
+    save_findings(
+        findings=findings,
+        output_path=str(output_file),
+        output_format="json",
+    )
+
+    loaded_data = json.loads(output_file.read_text(encoding="utf-8"))
+
+    assert output_file.exists()
+    assert loaded_data[0]["resource_name"] == "prod-customer-data"
+    assert loaded_data[0]["severity"] == "critical"
+
+
+def test_save_findings_raises_error_for_unsupported_output_format(tmp_path):
+    output_file = tmp_path / "findings.txt"
+
+    with pytest.raises(ValueError):
+        save_findings(
+            findings=[],
+            output_path=str(output_file),
+            output_format="txt",
+        )
+
+
+def test_main_writes_csv_when_output_format_is_csv(tmp_path, monkeypatch):
+    input_file = tmp_path / "infrastructure.json"
+    output_file = tmp_path / "findings.csv"
+
+    data = [
+        {
+            "bucket_name": "prod-customer-data",
+            "environment": "production",
+            "is_public": True,
+            "encryption_enabled": True,
+            "versioning_enabled": True,
+            "logging_enabled": True,
+        }
+    ]
+
+    input_file.write_text(json.dumps(data), encoding="utf-8")
+
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "audit.py",
+            "--input",
+            str(input_file),
+            "--output",
+            str(output_file),
+            "--output-format",
+            "csv",
+        ],
+    )
+
+    exit_code = main()
+
+    content = output_file.read_text(encoding="utf-8")
+
+    assert exit_code == 0
+    assert output_file.exists()
+    assert "prod-customer-data" in content
+    assert "S3_PUBLIC_ACCESS_DISABLED" in content

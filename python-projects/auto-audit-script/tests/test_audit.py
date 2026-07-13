@@ -4,9 +4,11 @@ from pathlib import Path
 import pytest
 
 from audit import (
+    AuditError,
     audit_s3_security_controls,
     determine_severity,
     load_infrastructure,
+    send_discord_alert,
     severity_meets_threshold,
 )
 
@@ -240,3 +242,121 @@ def test_load_infrastructure_raises_error_when_json_is_not_list(tmp_path):
 
     with pytest.raises(TypeError):
         load_infrastructure(str(input_file))
+
+def test_send_discord_alert_sends_request_for_matching_severity(monkeypatch):
+    posted_payloads = []
+
+    class FakeResponse:
+        def raise_for_status(self):
+            return None
+
+    def fake_post(url, json, timeout):
+        posted_payloads.append(
+            {
+                "url": url,
+                "json": json,
+                "timeout": timeout,
+            }
+        )
+        return FakeResponse()
+
+    monkeypatch.setattr("audit.requests.post", fake_post)
+
+    findings = [
+        {
+            "resource_name": "prod-customer-data",
+            "control_id": "S3_PUBLIC_ACCESS_DISABLED",
+            "severity": "critical",
+        }
+    ]
+
+    send_discord_alert(
+        webhook_url="https://discord.com/api/webhooks/test",
+        findings=findings,
+        notify_severity="high",
+    )
+
+    assert len(posted_payloads) == 1
+    assert posted_payloads[0]["url"] == "https://discord.com/api/webhooks/test"
+    assert posted_payloads[0]["timeout"] == 10
+
+    payload = posted_payloads[0]["json"]
+
+    assert payload["username"] == "S3 Security Auditor"
+    assert payload["embeds"][0]["title"] == "S3 Security Audit Alert"
+
+
+def test_send_discord_alert_does_not_send_when_no_findings_match_threshold(monkeypatch):
+    post_was_called = False
+
+    def fake_post(url, json, timeout):
+        nonlocal post_was_called
+        post_was_called = True
+
+    monkeypatch.setattr("audit.requests.post", fake_post)
+
+    findings = [
+        {
+            "resource_name": "dev-temp-files",
+            "control_id": "S3_ACCESS_LOGGING_ENABLED",
+            "severity": "low",
+        }
+    ]
+
+    send_discord_alert(
+        webhook_url="https://discord.com/api/webhooks/test",
+        findings=findings,
+        notify_severity="critical",
+    )
+
+    assert post_was_called is False
+
+
+def test_send_discord_alert_raises_audit_error_when_request_fails(monkeypatch):
+    import requests
+
+    def fake_post(url, json, timeout):
+        raise requests.RequestException("network error")
+
+    monkeypatch.setattr("audit.requests.post", fake_post)
+
+    findings = [
+        {
+            "resource_name": "prod-customer-data",
+            "control_id": "S3_PUBLIC_ACCESS_DISABLED",
+            "severity": "critical",
+        }
+    ]
+
+    with pytest.raises(AuditError):
+        send_discord_alert(
+            webhook_url="https://discord.com/api/webhooks/test",
+            findings=findings,
+            notify_severity="high",
+        )
+
+
+def test_send_discord_alert_skips_empty_webhook_url(monkeypatch):
+    post_was_called = False
+
+    def fake_post(url, json, timeout):
+        nonlocal post_was_called
+        post_was_called = True
+
+    monkeypatch.setattr("audit.requests.post", fake_post)
+
+    findings = [
+        {
+            "resource_name": "prod-customer-data",
+            "control_id": "S3_PUBLIC_ACCESS_DISABLED",
+            "severity": "critical",
+        }
+    ]
+
+    send_discord_alert(
+        webhook_url="   ",
+        findings=findings,
+        notify_severity="high",
+    )
+
+    assert post_was_called is False

@@ -8,6 +8,8 @@ El valor principal de este proyecto no está en la complejidad del código Pytho
 - Pruebas automatizadas con Pytest.
 - Imagen Docker optimizada.
 - CI/CD con GitHub Actions.
+- Build automático de imagen Docker en CI.
+- Smoke test automático del contenedor.
 - Escaneo de vulnerabilidades con Trivy.
 - Despliegue en Kubernetes usando K3s o Minikube dentro de una instancia EC2 en AWS.
 - Control de costos desde el inicio con AWS Budgets.
@@ -18,7 +20,7 @@ El valor principal de este proyecto no está en la complejidad del código Pytho
 
 Este proyecto forma parte de mi transición de **InfoSec GRC** hacia roles técnicos de **DevSecOps / Site Reliability Engineering (SRE)**.
 
-El objetivo es demostrar que entiendo cómo una aplicación pasa por un ciclo moderno de entrega:
+El objetivo es demostrar que entiendo cómo una aplicación pasa por un ciclo moderno de entrega segura:
 
 ```text
 Código local
@@ -28,6 +30,8 @@ Pruebas automatizadas
 Contenedor Docker
    ↓
 Pipeline CI/CD
+   ↓
+Build y smoke test automático
    ↓
 Escaneo de seguridad
    ↓
@@ -75,16 +79,16 @@ Acepta o rechaza el webhook
 |---|---:|---|
 | Día 1 | Completado | Configuración de AWS Budget de $5 USD y estructura base del repositorio. |
 | Día 2 | Completado | API local con FastAPI, pruebas con Pytest, Dockerfile, `.dockerignore` e imagen Docker funcional. |
-| Día 3 | Próximo | GitHub Actions para ejecutar pruebas automáticamente en cada push/pull request. |
-| Día 4 | Pendiente | Construcción automática de la imagen Docker desde GitHub Actions. |
-| Día 5 | Pendiente | Integración de Trivy para escaneo de vulnerabilidades en la imagen Docker. |
+| Día 3 | Completado | GitHub Actions ejecuta pruebas automáticamente en cada push y pull request. |
+| Día 4 | Completado | GitHub Actions construye la imagen Docker, levanta el contenedor y ejecuta smoke test contra `/health`. |
+| Día 5 | Próximo | Integración de Trivy para escaneo de vulnerabilidades en la imagen Docker antes de desplegar. |
 | Día 6 | Pendiente | Preparación segura de EC2 en AWS para laboratorio Kubernetes barato. |
 | Día 7 | Pendiente | Instalación de K3s o Minikube en EC2. |
 | Día 8 | Pendiente | Creación de manifiestos Kubernetes: Deployment, Service y Secrets. |
 | Día 9 | Pendiente | Despliegue de la aplicación en Kubernetes. |
 | Día 10 | Pendiente | Documentación final, evidencias, diagrama de arquitectura y retrospectiva técnica. |
 
-> Nota: Como las tareas del Día 2 ya fueron completadas correctamente, el siguiente bloque de trabajo debe comenzar en el **Día 3**.
+> Nota actual: el proyecto ya cuenta con CI funcional para pruebas Python y validación básica de contenedor. El siguiente bloque de trabajo debe comenzar en el **Día 5: Trivy**.
 
 ---
 
@@ -113,6 +117,26 @@ Acepta o rechaza el webhook
 │ python:3.12-slim            │
 │ non-root user               │
 └─────────────────────────────┘
+```
+
+Arquitectura actual del pipeline:
+
+```text
+Developer
+   ↓
+git push / pull request
+   ↓
+GitHub Actions
+   ↓
+Job 1: Run Python tests
+   ↓
+Job 2: Build Docker image
+   ↓
+Run container
+   ↓
+Smoke test: curl /health
+   ↓
+CI Success / Failure
 ```
 
 Arquitectura futura:
@@ -148,6 +172,8 @@ Kubernetes Deployment
 | Cliente de pruebas | HTTPX / FastAPI TestClient |
 | Contenedores | Docker |
 | CI/CD | GitHub Actions |
+| Build de contenedor en CI | Docker Buildx + docker/build-push-action |
+| Smoke test | `curl --fail http://localhost:8000/health` |
 | Escaneo de seguridad | Trivy |
 | Cloud | AWS EC2 |
 | Orquestación | Kubernetes con K3s o Minikube |
@@ -157,18 +183,25 @@ Kubernetes Deployment
 
 ## Estructura del proyecto
 
+Si este proyecto vive dentro del monorepo `devsecops-learning-log`, la estructura relevante es:
+
 ```text
-webhook-validator-secops/
-├── app/
-│   ├── __init__.py
-│   └── main.py
-├── tests/
-│   └── test_main.py
-├── .dockerignore
-├── Dockerfile
-├── pyproject.toml
-├── requirements.txt
-└── README.md
+devsecops-learning-log/
+├── .github/
+│   └── workflows/
+│       └── webhook-validator-ci.yml
+└── python-projects/
+    └── webhook-validator-secops/
+        ├── app/
+        │   ├── __init__.py
+        │   └── main.py
+        ├── tests/
+        │   └── test_main.py
+        ├── .dockerignore
+        ├── Dockerfile
+        ├── pyproject.toml
+        ├── requirements.txt
+        └── README.md
 ```
 
 ---
@@ -228,6 +261,8 @@ El microservicio usa un secreto definido por variable de entorno:
 ```python
 WEBHOOK_SECRET = os.getenv("WEBHOOK_SECRET", "dev-secret")
 ```
+
+Para desarrollo local se usa `dev-secret`. Para producción, este valor debe venir de una variable de entorno segura o de un `Secret` de Kubernetes.
 
 La firma se genera usando HMAC SHA-256:
 
@@ -294,6 +329,12 @@ Probar health check:
 
 ```bash
 curl http://localhost:8000/health
+```
+
+Para detener `uvicorn`:
+
+```text
+CTRL + C
 ```
 
 ---
@@ -393,6 +434,13 @@ Para detener el contenedor:
 CTRL + C
 ```
 
+Si el contenedor corre en segundo plano:
+
+```bash
+docker ps
+docker rm -f <container_id_or_name>
+```
+
 ---
 
 ## Dockerfile actual
@@ -423,6 +471,143 @@ CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
 ---
 
+## GitHub Actions CI
+
+El proyecto ya cuenta con un workflow en:
+
+```text
+.github/workflows/webhook-validator-ci.yml
+```
+
+Este workflow corre cuando hay cambios en:
+
+```text
+python-projects/webhook-validator-secops/**
+.github/workflows/webhook-validator-ci.yml
+```
+
+Eventos soportados:
+
+- `push`
+- `pull_request`
+- `workflow_dispatch`
+
+Jobs actuales:
+
+```text
+Run Python tests
+   ↓
+Build and smoke test Docker image
+```
+
+### Workflow actual esperado
+
+```yaml
+name: Webhook Validator CI
+
+on:
+  push:
+    branches:
+      - main
+      - "feature/**"
+      - "security/**"
+    paths:
+      - "python-projects/webhook-validator-secops/**"
+      - ".github/workflows/webhook-validator-ci.yml"
+
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "python-projects/webhook-validator-secops/**"
+      - ".github/workflows/webhook-validator-ci.yml"
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Run Python tests
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: python-projects/webhook-validator-secops
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: "pip"
+          cache-dependency-path: "python-projects/webhook-validator-secops/requirements.txt"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run tests
+        run: python -m pytest -v
+
+  docker-build:
+    name: Build and smoke test Docker image
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./python-projects/webhook-validator-secops
+          file: ./python-projects/webhook-validator-secops/Dockerfile
+          push: false
+          load: true
+          tags: webhook-validator:ci
+
+      - name: Run container
+        run: |
+          docker run -d \
+            --name webhook-validator-ci \
+            -p 8000:8000 \
+            -e WEBHOOK_SECRET=dev-secret \
+            webhook-validator:ci
+
+      - name: Smoke test health endpoint
+        run: |
+          sleep 5
+          curl --fail http://localhost:8000/health
+
+      - name: Clean up container
+        if: always()
+        run: |
+          docker rm -f webhook-validator-ci || true
+```
+
+### Nota sobre actualización de GitHub Actions
+
+Durante el Día 4 apareció una annotation de deprecación relacionada con Node.js 20 en GitHub Actions. Se actualizó el workflow para usar versiones compatibles con Node 24:
+
+```text
+actions/checkout@v5
+actions/setup-python@v6
+```
+
+Esto mantiene el pipeline más limpio y evita depender de versiones próximas a quedar obsoletas.
+
+---
+
 ## Buenas prácticas ya aplicadas
 
 ### Seguridad financiera
@@ -446,53 +631,60 @@ CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 - Se usa `.dockerignore` para evitar copiar archivos innecesarios.
 - Se usa `pip install --no-cache-dir` para reducir basura en la imagen.
 
-### Calidad
+### Calidad y CI/CD
 
 - Pruebas automatizadas con Pytest.
 - Separación entre código de aplicación y pruebas.
 - Configuración de `pyproject.toml` para facilitar imports en Pytest.
-- Repositorio versionado con Git.
+- GitHub Actions ejecuta pruebas automáticamente.
+- El pipeline construye la imagen Docker desde cero.
+- El pipeline levanta el contenedor y ejecuta un smoke test contra `/health`.
+- El job de Docker depende del job de pruebas mediante `needs: test`.
+- Se aplican permisos mínimos en el workflow con `permissions: contents: read`.
+- Repositorio versionado con Git y trabajo por branches.
+
+---
+
+## Lección de Git aprendida durante el Día 4
+
+Durante la actualización del workflow, una branch anterior quedó desfasada respecto a `main`.
+
+El hallazgo fue que la branch vieja podía eliminar el job `docker-build` si se mergeaba después de que `main` ya tenía el Día 4 completado.
+
+Comandos útiles para detectar esto:
+
+```bash
+git fetch --all --prune
+git diff --name-only main..origin/feature/webhook-validator-ci
+git diff main..origin/feature/webhook-validator-ci -- .github/workflows/webhook-validator-ci.yml
+```
+
+Conclusión práctica:
+
+```text
+No se debe mergear una branch vieja sin compararla contra main.
+main debe conservar el workflow completo con:
+- Run Python tests
+- Build and smoke test Docker image
+```
+
+Para limpiar una branch remota obsoleta:
+
+```bash
+git push origin --delete feature/webhook-validator-ci
+```
+
+Para borrarla localmente:
+
+```bash
+git branch -D feature/webhook-validator-ci
+```
 
 ---
 
 ## Próximos sprints diarios de 2 horas
 
-Como el Día 2 ya está completado, el plan continúa desde el Día 3.
-
-### Día 3 — GitHub Actions: pruebas automatizadas
-
-Objetivo:
-
-- Crear un workflow de GitHub Actions.
-- Ejecutar `pytest` automáticamente en cada push y pull request.
-
-Concepto:
-
-GitHub Actions será el primer paso de CI. En lugar de confiar solo en que las pruebas pasan en mi computadora, GitHub correrá las pruebas en un ambiente limpio cada vez que suba cambios.
-
-Criterio de éxito:
-
-- Al hacer `git push`, GitHub Actions ejecuta las pruebas.
-- El workflow termina en verde.
-
----
-
-### Día 4 — GitHub Actions: build de Docker
-
-Objetivo:
-
-- Agregar al pipeline la construcción de la imagen Docker.
-
-Concepto:
-
-Después de comprobar que el código funciona, el pipeline debe verificar que también puede empaquetarse correctamente como contenedor.
-
-Criterio de éxito:
-
-- GitHub Actions ejecuta `docker build` sin errores.
-- El pipeline confirma que la imagen puede construirse desde cero.
-
----
+Como los Días 1 al 4 ya están completados, el plan continúa desde el Día 5.
 
 ### Día 5 — Trivy: escaneo de vulnerabilidades
 
@@ -503,7 +695,7 @@ Objetivo:
 
 Concepto:
 
-Trivy funciona como un scanner de seguridad para detectar vulnerabilidades conocidas en paquetes del sistema, librerías y dependencias dentro de la imagen.
+Trivy funcionará como un scanner de seguridad para detectar vulnerabilidades conocidas en paquetes del sistema, librerías y dependencias dentro de la imagen.
 
 Criterio de éxito:
 
@@ -653,20 +845,29 @@ Ver historial de commits:
 git log --oneline
 ```
 
+Comparar una branch con `main`:
+
+```bash
+git diff --name-only main..origin/<branch-name>
+```
+
 ---
 
 ## Cómo explicar este proyecto en entrevista
 
 Este proyecto demuestra que puedo tomar una aplicación pequeña y llevarla por un flujo moderno de entrega segura.
 
-La API en sí es simple: valida webhooks usando HMAC SHA-256. Pero el propósito real es mostrar prácticas DevSecOps:
+La API en sí es simple: valida webhooks usando HMAC SHA-256. Pero el propósito real es mostrar prácticas DevSecOps/SRE:
 
 - Controlé costos antes de crear infraestructura en AWS.
 - Escribí una API con validación de seguridad básica.
 - Agregué pruebas automatizadas para comprobar comportamiento esperado.
 - Empaqueté la aplicación en Docker usando una imagen ligera.
 - Evité correr el contenedor como root.
-- Preparé el proyecto para CI/CD.
+- Configuré GitHub Actions para ejecutar pruebas automáticamente.
+- Extendí el pipeline para construir la imagen Docker.
+- Agregué un smoke test para confirmar que el contenedor arranca y responde en `/health`.
+- Actualicé las acciones de GitHub para evitar deprecaciones relacionadas con Node.js 20.
 - El siguiente paso será escanear la imagen con Trivy antes del despliegue.
 - Finalmente, la app se desplegará en Kubernetes usando una alternativa barata a EKS.
 

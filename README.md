@@ -26,7 +26,10 @@ Week 2 is focused on improving the quality and professionalism of the first port
 - ✅ Removed obsolete `week-01/` practice files
 - ✅ Improved **S3 Security Auditor** with automated `pytest` coverage
 - ✅ Added `pytest.ini` for local test discovery and imports
-- ✅ Validated **28 passing tests** for the S3 Security Auditor
+- ✅ Added GitHub Actions CI for the S3 Security Auditor
+- ✅ Added mocked tests for Discord webhook alerting
+- ✅ Added `--fail-on-severity` so the auditor can act as a CI/CD security gate
+- ✅ Added JSON/CSV findings export with `--output-format`
 - ✅ Improved **Webhook Validator SecOps** with Docker build and smoke test in GitHub Actions
 - ✅ Updated GitHub Actions versions to avoid Node.js 20 deprecation warnings
 - ✅ Continued branch-based development for cleaner implementation history
@@ -44,6 +47,7 @@ Week 2 is focused on improving the quality and professionalism of the first port
 devsecops-learning-log/
 ├── .github/
 │   └── workflows/
+│       ├── s3-auditor-ci.yml
 │       └── webhook-validator-ci.yml
 ├── ctf/
 │   └── bandit/
@@ -79,7 +83,7 @@ devsecops-learning-log/
 
 ## 1. S3 Security Auditor
 
-**Status:** ✅ Functional MVP + Discord Alerts + Pytest Coverage  
+**Status:** ✅ Functional MVP + Discord Alerts + Pytest + CI + Security Gate + CSV Export  
 **Folder:** `python-projects/auto-audit-script/`  
 **Language:** Python 3  
 **Focus:** Cloud Security / GRC Automation / DevSecOps
@@ -102,7 +106,7 @@ The tool generates structured findings with:
 - Severity
 - Recommendation
 - Basic framework mapping
-- JSON output report
+- JSON or CSV output report
 
 ### Main Features
 
@@ -115,6 +119,10 @@ The tool generates structured findings with:
 - Optional Discord webhook alerting
 - Environment variable-based secret handling
 - Automated testing with `pytest`
+- Mocked tests for Discord webhook behavior
+- GitHub Actions CI for automated tests
+- `--fail-on-severity` security gate behavior
+- JSON and CSV output with `--output-format`
 
 ### Example Usage
 
@@ -123,6 +131,24 @@ cd python-projects/auto-audit-script
 
 pip install -r requirements.txt
 python audit.py --input infrastructure.example.json --output findings.example.json
+```
+
+Run with CSV output:
+
+```bash
+python audit.py \
+  --input infrastructure.example.json \
+  --output findings.csv \
+  --output-format csv
+```
+
+Run as a security gate:
+
+```bash
+python audit.py \
+  --input infrastructure.example.json \
+  --output findings.example.json \
+  --fail-on-severity high
 ```
 
 Run with Discord alerts:
@@ -142,10 +168,10 @@ pip install -r requirements-dev.txt
 pytest -v
 ```
 
-Latest local result:
+Latest expected local result:
 
 ```text
-28 passed in 0.96s
+40+ passing tests
 ```
 
 ### What This Project Demonstrates
@@ -156,16 +182,29 @@ Latest local result:
 - Risk prioritization
 - Secure handling of secrets
 - Webhook-based alerting
+- Mocking external integrations
 - Automated unit testing
+- CI/CD security gate behavior
+- JSON and CSV reporting
 - Branch-based implementation workflow
+
+### Completed Improvements
+
+- ✅ Production-ready audit CLI
+- ✅ Discord webhook alerting
+- ✅ Pytest coverage
+- ✅ GitHub Actions CI
+- ✅ Mocked webhook tests
+- ✅ `--fail-on-severity` security gate
+- ✅ CSV findings export
 
 ### Next Improvements
 
-- Mock Discord webhook tests
-- GitHub Actions CI for the S3 auditor
-- CSV export
-- More S3 controls
 - Real AWS inventory using `boto3`
+- More S3 controls
+- SARIF output
+- Slack webhook support
+- Package as installable CLI
 
 ---
 
@@ -322,49 +361,6 @@ OverTheWire Bandit is a Linux security wargame focused on practical command-line
 
 I completed the available Bandit path through `bandit33`. Level 34 does not currently exist, so `bandit33` represents the current end of the wargame.
 
-### Main Skills Practiced
-
-- Linux file navigation and permissions
-- SSH login and remote command execution
-- SSH private key handling
-- WSL/Linux permission troubleshooting
-- Port scanning with `nmap`
-- SSL/TLS service interaction with `openssl s_client`
-- Netcat listeners and local daemon communication
-- `setuid` binaries and privilege boundaries
-- Cron job auditing in `/etc/cron.d/`
-- Reading and writing shell scripts
-- Brute force automation in a controlled lab
-- Shell escapes through `more`, `vi`, and restricted shells
-- Git repository auditing across history, branches, and tags
-- Git workflow with `add`, `commit`, and `push`
-
-### Advanced Concepts Covered
-
-#### Linux and Security
-
-- Compared files with `diff` to identify changed secrets.
-- Used `setuid` binaries to understand privilege delegation.
-- Audited cron jobs to identify automated scripts exposing secrets.
-- Created a custom shell script executed by a scheduled process.
-- Used `seq`, `for`, pipes, `nc`, and `grep -v` for controlled brute force automation.
-
-#### SSH and Shell Escapes
-
-- Copied private keys safely with `scp`.
-- Fixed WSL permission issues by storing keys inside the Linux filesystem.
-- Escaped from `more` into `vi`, then from `vi` into Bash.
-- Escaped an uppercase-restricted shell using `$0`.
-
-#### Git Security
-
-- Cloned repositories over SSH using a custom port.
-- Found secrets in Git history using `git log -p` and `git show`.
-- Reviewed remote branches with `git branch -a`.
-- Reviewed tags with `git tag` and `git show`.
-- Forced a tracked file through `.gitignore` using `git add -f`.
-- Completed a full Git workflow with `commit` and `push`.
-
 ### DevSecOps Lessons
 
 Bandit reinforced several real-world DevSecOps lessons:
@@ -376,48 +372,6 @@ Bandit reinforced several real-world DevSecOps lessons:
 - Services need rate limiting and brute force protections.
 - Restricted shells must be configured carefully because interactive programs may allow escapes.
 - Reading scripts written by others is a critical security and operations skill.
-
-### Commands Reinforced
-
-```bash
-ls
-cat
-grep
-cut
-chmod
-nano
-whoami
-id
-pwd
-diff
-seq
-for
-echo
-ssh
-scp
-nmap
-openssl s_client
-nc
-cron
-git clone
-git log -p
-git show
-git branch -a
-git tag
-git add -f
-git commit
-git push
-```
-
-### Documentation Note
-
-The detailed notes should be stored as:
-
-```text
-ctf/bandit/bandit-final-notes.md
-```
-
-No real Bandit passwords should be committed to this repository. The notes should document concepts, commands, troubleshooting steps, and lessons learned without exposing actual secrets.
 
 ---
 
@@ -441,11 +395,13 @@ No real Bandit passwords should be committed to this repository. The notes shoul
 **Status:** 🔄 In Progress — Week 2 of 12
 
 - [x] Linux fundamentals
-- [x] Bandit CTF levels 0-25
-- [x] Bandit CTF levels 26-33
+- [x] Bandit CTF levels 0-33
 - [x] First Python security automation project
 - [x] Discord webhook alerting
 - [x] Pytest coverage for S3 Security Auditor
+- [x] GitHub Actions CI for S3 Security Auditor
+- [x] Fail-on-severity security gate
+- [x] CSV export for audit findings
 - [x] Webhook Validator API with FastAPI
 - [x] Dockerized Webhook Validator
 - [x] GitHub Actions CI for tests
@@ -491,7 +447,10 @@ No real Bandit passwords should be committed to this repository. The notes shoul
 
 - [x] Complete Bandit CTF available levels through `bandit33`
 - [x] Add pytest tests to S3 Security Auditor
-- [ ] Add mocked tests for Discord webhook alerts
+- [x] Add mocked tests for Discord webhook alerts
+- [x] Add GitHub Actions CI for S3 Security Auditor
+- [x] Add `--fail-on-severity` security gate
+- [x] Add CSV export for audit findings
 - [x] Update Webhook Validator CI with Docker build and smoke test
 - [ ] Add Trivy scan to Webhook Validator CI
 - [ ] Continue KodeKloud networking fundamentals
@@ -508,13 +467,14 @@ No real Bandit passwords should be committed to this repository. The notes shoul
 | KodeKloud Labs | 13+ | 20 |
 | Portfolio Projects | 2 | 2 |
 | CTF Documentation Sets | 1 | 1 |
-| Automated Tests | 32+ | 35+ |
+| Automated Tests | 44+ | 45+ |
 | Dockerized Projects | 1 | 2 |
-| CI/CD Pipelines | 1 | 2 |
+| CI/CD Pipelines | 2 | 2 |
 | Security Alerting Integrations | 1 | 1 |
+| Security Gate Features | 1 | 1 |
 | GitHub Commits | 70+ | 100+ |
 
-> Automated tests currently include 28 tests for S3 Security Auditor and 4 tests for Webhook Validator.
+> Automated tests currently include 40+ tests for S3 Security Auditor and 4 tests for Webhook Validator.
 
 ---
 
@@ -524,6 +484,7 @@ No real Bandit passwords should be committed to this repository. The notes shoul
 
 - ✅ CLI development with `argparse`
 - ✅ JSON processing
+- ✅ CSV report generation
 - ✅ Logging and exception handling
 - ✅ HTTP requests and webhook integration
 - ✅ FastAPI microservice development
@@ -532,7 +493,7 @@ No real Bandit passwords should be committed to this repository. The notes shoul
 - ✅ Pytest unit testing
 - ✅ Test parametrization
 - ✅ Temporary file testing with `tmp_path`
-- 🔄 Mocking external integrations
+- ✅ Mocking external integrations
 - 📋 AWS automation with `boto3`
 
 ### DevOps / SRE
@@ -543,6 +504,7 @@ No real Bandit passwords should be committed to this repository. The notes shoul
 - ✅ GitHub Actions CI
 - ✅ CI job dependencies with `needs`
 - ✅ Workflow path filters
+- ✅ CI/CD-style failure threshold
 - ✅ Git branch workflow
 - ✅ Cleaning obsolete files safely
 - ✅ Git over SSH with custom ports
@@ -555,6 +517,7 @@ No real Bandit passwords should be committed to this repository. The notes shoul
 - ✅ S3 security control logic
 - ✅ Severity-based risk prioritization
 - ✅ GRC-style findings and recommendations
+- ✅ JSON and CSV evidence generation
 - ✅ Secure webhook validation
 - ✅ Secret handling with environment variables
 - ✅ Basic CI/CD security practices
@@ -564,21 +527,6 @@ No real Bandit passwords should be committed to this repository. The notes shoul
 - ✅ Controlled brute force awareness in lab context
 - 🔄 Image vulnerability scanning
 - 📋 AWS IAM and EC2 security basics
-
-### Linux & Security Fundamentals
-
-- ✅ File permissions
-- ✅ User and group management
-- ✅ SSH hardening
-- ✅ SSH private key handling
-- ✅ Cron job auditing
-- ✅ Bash automation
-- ✅ Netcat and OpenSSL usage
-- ✅ Port scanning with Nmap
-- ✅ Controlled brute-force automation in CTF context
-- ✅ `setuid` binary analysis
-- ✅ Shell escapes using `more`, `vi`, and `$0`
-- ✅ WSL/Linux permission troubleshooting
 
 ---
 
@@ -591,29 +539,12 @@ Examples:
 ```bash
 git switch -c feature/discord-webhook-alerts
 git switch -c feature/add-pytest-coverage
+git switch -c feature/s3-auditor-ci
+git switch -c feature/test-discord-webhook-alerts
+git switch -c feature/s3-auditor-fail-threshold
+git switch -c feature/s3-auditor-csv-output
 git switch -c chore/remove-obsolete-week-01
 git switch -c docs/add-bandit-final-notes
-```
-
-Repository cleanup flow:
-
-```bash
-git status
-git switch -c chore/remove-obsolete-week-01
-rm -rf week-01
-git add -A week-01
-git commit -m "Remove obsolete week 1 practice files"
-git push -u origin chore/remove-obsolete-week-01
-```
-
-Bandit documentation update flow:
-
-```bash
-mkdir -p ctf/bandit
-cp bandit-final-notes.md ctf/bandit/bandit-final-notes.md
-git add README.md ctf/bandit/bandit-final-notes.md
-git commit -m "Document completed Bandit CTF progress"
-git push
 ```
 
 This keeps `main` cleaner and makes every repository change easier to review.
@@ -624,7 +555,7 @@ This keeps `main` cleaner and makes every repository change easier to review.
 
 ### S3 Security Auditor
 
-> I built a Python CLI tool that simulates cloud security control validation for AWS S3 buckets. It reads a JSON inventory, evaluates controls like public access, encryption, versioning, and logging, then generates structured findings with severity and remediation guidance. I also added Discord alerting for high-priority issues and automated tests with pytest to validate the audit logic.
+> I built a Python CLI tool that simulates cloud security control validation for AWS S3 buckets. It reads a JSON inventory, evaluates controls like public access, encryption, versioning, and logging, then generates structured findings with severity and remediation guidance. I added Discord alerting for high-priority issues, automated tests with pytest, mocked tests for the webhook integration, a CI workflow, a fail-on-severity option so it can act as a security gate, and CSV output for GRC-style reporting.
 
 ### Webhook Validator SecOps
 
@@ -645,6 +576,7 @@ Together, these projects show that I can:
 - Create CI/CD workflows
 - Add basic security gates
 - Manage secrets safely
+- Generate both machine-readable and human-readable security findings
 - Audit repositories for secret exposure patterns
 - Analyze Linux permissions and automation risks
 - Work through branches like a real engineering workflow
@@ -666,6 +598,8 @@ Every meaningful project should have:
 - Error handling
 - Security considerations
 - Git branch history
+- CI/CD or automation where appropriate
+- Machine-readable and human-readable outputs when useful
 - Next-step roadmap
 - Study notes that explain concepts, not just commands
 ```
@@ -683,4 +617,4 @@ Code projects are shared freely for educational purposes.
 **Last Updated:** July 13, 2026  
 **Current Week:** Week 2 in progress  
 **Next Milestone:** Trivy scan in Webhook Validator CI  
-**Momentum:** Strong — Bandit CTF available levels are complete, and the repository now focuses on portfolio-ready DevSecOps projects, structured documentation, and security automation.
+**Momentum:** Strong — Bandit CTF available levels are complete, and the repository now focuses on portfolio-ready DevSecOps projects, structured documentation, testing, CI, reporting, and security automation.

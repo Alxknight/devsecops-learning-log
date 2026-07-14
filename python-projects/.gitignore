@@ -25,3 +25,4 @@ Thumbs.db
 # Generated output
 findings.json
 output/
+audit-reports/

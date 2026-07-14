@@ -1,12 +1,36 @@
 import hashlib
 import hmac
+import logging
 import os
 
 from fastapi import FastAPI, Header, HTTPException, Request
 
 app = FastAPI(title="Webhook Validator API")
 
-WEBHOOK_SECRET = os.getenv("WEBHOOK_SECRET", "dev-secret")
+logger = logging.getLogger("webhook-validator")
+
+
+def get_webhook_secret() -> str:
+    """
+    Returns the webhook secret.
+
+    In development/test/local environments, a default secret is allowed
+    to keep local testing simple.
+
+    In production-like environments, WEBHOOK_SECRET must be explicitly set.
+    """
+    secret = os.getenv("WEBHOOK_SECRET")
+    environment = os.getenv("APP_ENV", "development").lower()
+
+    if secret:
+        return secret
+
+    if environment in {"development", "test", "local"}:
+        return "dev-secret"
+
+    raise RuntimeError(
+        "WEBHOOK_SECRET environment variable is required outside development/test/local"
+    )
 
 
 def generate_signature(payload: bytes, secret: str) -> str:
@@ -46,22 +70,35 @@ async def validate_webhook(
     payload = await request.body()
 
     if not x_webhook_signature:
+        logger.warning("Webhook rejected: missing signature")
         raise HTTPException(
             status_code=401,
             detail="Missing webhook signature",
         )
 
+    try:
+        webhook_secret = get_webhook_secret()
+    except RuntimeError:
+        logger.error("Webhook secret is not configured for this environment")
+        raise HTTPException(
+            status_code=500,
+            detail="Webhook secret is not configured",
+        )
+
     is_valid = verify_signature(
         payload=payload,
         received_signature=x_webhook_signature,
-        secret=WEBHOOK_SECRET,
+        secret=webhook_secret,
     )
 
     if not is_valid:
+        logger.warning("Webhook rejected: invalid signature")
         raise HTTPException(
             status_code=403,
             detail="Invalid webhook signature",
         )
+
+    logger.info("Webhook accepted")
 
     return {
         "message": "Webhook accepted",

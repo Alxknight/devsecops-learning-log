@@ -64,6 +64,11 @@ fi
 
 echo ""
 echo "========================================"
+echo ""
+echo "[Extra] Generating security recommendation summary..."
+python scripts/audit_recommender.py \
+  --report-dir "$REPORT_DIR" \
+  --output "$REPORT_DIR/security-summary.md"
 echo "Security audit completed."
 echo "Reports saved in:"
 echo "$REPORT_DIR"

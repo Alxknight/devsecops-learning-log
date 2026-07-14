@@ -11,7 +11,10 @@ El valor principal de este proyecto no está en la complejidad del código Pytho
 - Build automático de imagen Docker en CI.
 - Smoke test automático del contenedor.
 - Escaneo de vulnerabilidades con Trivy.
-- Despliegue en Kubernetes usando K3s o Minikube dentro de una instancia EC2 en AWS.
+- Documentación de hallazgos en `SECURITY_AUDIT.md`.
+- Triage de CVE y remediación de dependencias.
+- Reducción de superficie de ataque mediante imagen base Alpine.
+- Despliegue futuro en Kubernetes usando K3s o Minikube dentro de una instancia EC2 en AWS.
 - Control de costos desde el inicio con AWS Budgets.
 
 ---
@@ -34,6 +37,10 @@ Pipeline CI/CD
 Build y smoke test automático
    ↓
 Escaneo de seguridad
+   ↓
+CVE triage
+   ↓
+Remediación o documentación de riesgo
    ↓
 Infraestructura cloud
    ↓
@@ -81,14 +88,14 @@ Acepta o rechaza el webhook
 | Día 2 | Completado | API local con FastAPI, pruebas con Pytest, Dockerfile, `.dockerignore` e imagen Docker funcional. |
 | Día 3 | Completado | GitHub Actions ejecuta pruebas automáticamente en cada push y pull request. |
 | Día 4 | Completado | GitHub Actions construye la imagen Docker, levanta el contenedor y ejecuta smoke test contra `/health`. |
-| Día 5 | Próximo | Integración de Trivy para escaneo de vulnerabilidades en la imagen Docker antes de desplegar. |
-| Día 6 | Pendiente | Preparación segura de EC2 en AWS para laboratorio Kubernetes barato. |
+| Día 5 | Completado | Trivy, CVE triage, actualización de dependencias, `SECURITY_AUDIT.md` y cambio de imagen base a Alpine. |
+| Día 6 | Próximo | Preparación segura de EC2 en AWS para laboratorio Kubernetes barato. |
 | Día 7 | Pendiente | Instalación de K3s o Minikube en EC2. |
 | Día 8 | Pendiente | Creación de manifiestos Kubernetes: Deployment, Service y Secrets. |
 | Día 9 | Pendiente | Despliegue de la aplicación en Kubernetes. |
 | Día 10 | Pendiente | Documentación final, evidencias, diagrama de arquitectura y retrospectiva técnica. |
 
-> Nota actual: el proyecto ya cuenta con CI funcional para pruebas Python y validación básica de contenedor. El siguiente bloque de trabajo debe comenzar en el **Día 5: Trivy**.
+> Nota actual: el proyecto ya cuenta con CI funcional, build Docker, smoke test, Trivy, documentación de seguridad, triage de CVE y una imagen Alpine que redujo los hallazgos HIGH/CRITICAL en el escaneo probado.
 
 ---
 
@@ -101,6 +108,7 @@ Acepta o rechaza el webhook
            │
            │ HTTP POST /webhook
            │ Header: X-Webhook-Signature
+           │ Optional: X-Request-ID
            ▼
 ┌─────────────────────────────┐
 │ FastAPI Webhook Validator   │
@@ -108,14 +116,16 @@ Acepta o rechaza el webhook
 │ - Lee el payload            │
 │ - Calcula HMAC SHA-256      │
 │ - Compara la firma          │
+│ - Registra evento seguro    │
 │ - Acepta o rechaza          │
 └──────────┬──────────────────┘
            │
            ▼
 ┌─────────────────────────────┐
 │ Docker Container            │
-│ python:3.12-slim            │
+│ python:3.12-alpine          │
 │ non-root user               │
+│ Docker HEALTHCHECK          │
 └─────────────────────────────┘
 ```
 
@@ -131,6 +141,8 @@ GitHub Actions
 Job 1: Run Python tests
    ↓
 Job 2: Build Docker image
+   ↓
+Trivy image scan
    ↓
 Run container
    ↓
@@ -157,6 +169,8 @@ AWS EC2
 K3s / Minikube
    ↓
 Kubernetes Deployment
+   ↓
+Readiness/Liveness Probes
 ```
 
 ---
@@ -171,10 +185,13 @@ Kubernetes Deployment
 | Testing | Pytest |
 | Cliente de pruebas | HTTPX / FastAPI TestClient |
 | Contenedores | Docker |
+| Imagen base actual | `python:3.12-alpine` |
 | CI/CD | GitHub Actions |
 | Build de contenedor en CI | Docker Buildx + docker/build-push-action |
 | Smoke test | `curl --fail http://localhost:8000/health` |
 | Escaneo de seguridad | Trivy |
+| Auditoría local | `scripts/local-security-audit.sh` |
+| Reporte de seguridad | `SECURITY_AUDIT.md` |
 | Cloud | AWS EC2 |
 | Orquestación | Kubernetes con K3s o Minikube |
 | Control de costos | AWS Budgets |
@@ -197,10 +214,16 @@ devsecops-learning-log/
         │   └── main.py
         ├── tests/
         │   └── test_main.py
+        ├── scripts/
+        │   ├── local-security-audit.sh
+        │   └── audit_recommender.py
         ├── .dockerignore
+        ├── .env.example
+        ├── .gitignore
         ├── Dockerfile
         ├── pyproject.toml
         ├── requirements.txt
+        ├── SECURITY_AUDIT.md
         └── README.md
 ```
 
@@ -208,7 +231,7 @@ devsecops-learning-log/
 
 ## Endpoints disponibles
 
-### Health Check
+### Health Check / Liveness
 
 ```http
 GET /health
@@ -223,6 +246,30 @@ Respuesta esperada:
 }
 ```
 
+Este endpoint confirma que el proceso de la aplicación está vivo.
+
+---
+
+### Readiness Check
+
+```http
+GET /ready
+```
+
+Respuesta esperada en ambiente listo:
+
+```json
+{
+  "status": "ready",
+  "service": "webhook-validator",
+  "environment": "development"
+}
+```
+
+En ambientes production-like, `/ready` valida que `WEBHOOK_SECRET` esté configurado.
+
+---
+
 ### Validación de Webhook
 
 ```http
@@ -233,6 +280,12 @@ Header requerido:
 
 ```http
 X-Webhook-Signature: sha256=<firma_hmac>
+```
+
+Header opcional para trazabilidad:
+
+```http
+X-Request-ID: <request-id>
 ```
 
 Respuesta con firma válida:
@@ -252,17 +305,38 @@ Respuesta con firma inválida:
 }
 ```
 
+Respuesta sin firma:
+
+```json
+{
+  "detail": "Missing webhook signature"
+}
+```
+
 ---
 
-## Código principal de la API
+## Seguridad de secretos
 
 El microservicio usa un secreto definido por variable de entorno:
 
-```python
-WEBHOOK_SECRET = os.getenv("WEBHOOK_SECRET", "dev-secret")
+```text
+WEBHOOK_SECRET
 ```
 
-Para desarrollo local se usa `dev-secret`. Para producción, este valor debe venir de una variable de entorno segura o de un `Secret` de Kubernetes.
+Para ambientes locales de desarrollo se permite un secreto de prueba. Para ambientes production-like, el secreto debe estar definido explícitamente.
+
+Esto prepara el proyecto para usar un futuro `Secret` de Kubernetes.
+
+Variables documentadas:
+
+```env
+APP_ENV=development
+WEBHOOK_SECRET=dev-secret
+```
+
+---
+
+## Validación HMAC
 
 La firma se genera usando HMAC SHA-256:
 
@@ -281,6 +355,25 @@ hmac.compare_digest(expected_signature, received_signature)
 ```
 
 Esto evita comparaciones inseguras entre strings.
+
+---
+
+## Observabilidad básica
+
+El proyecto incluye:
+
+- Logging seguro de webhooks aceptados/rechazados.
+- No se imprimen secretos.
+- No se imprimen firmas.
+- No se imprimen payloads completos.
+- Se registra `payload_size`.
+- Se propaga o genera `X-Request-ID`.
+
+Ejemplo:
+
+```text
+Webhook rejected: invalid signature | request_id=<id> | payload_size=<size>
+```
 
 ---
 
@@ -316,19 +409,25 @@ pytest
 Resultado esperado:
 
 ```text
-4 passed
+9 passed
 ```
 
 ### 4. Levantar la API localmente
 
 ```bash
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+APP_ENV=development uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 Probar health check:
 
 ```bash
 curl http://localhost:8000/health
+```
+
+Probar readiness:
+
+```bash
+curl http://localhost:8000/ready
 ```
 
 Para detener `uvicorn`:
@@ -351,6 +450,7 @@ echo "$SIGNATURE"
 
 curl -i -X POST http://localhost:8000/webhook \
   -H "Content-Type: application/json" \
+  -H "X-Request-ID: local-test-123" \
   -H "X-Webhook-Signature: $SIGNATURE" \
   -d "$PAYLOAD"
 ```
@@ -417,15 +517,7 @@ Probar:
 
 ```bash
 curl http://localhost:8000/health
-```
-
-Respuesta esperada:
-
-```json
-{
-  "status": "ok",
-  "service": "webhook-validator"
-}
+curl http://localhost:8000/ready
 ```
 
 Para detener el contenedor:
@@ -446,14 +538,15 @@ docker rm -f <container_id_or_name>
 ## Dockerfile actual
 
 ```dockerfile
-FROM python:3.12-slim
+FROM python:3.12-alpine
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV APP_ENV=production
 
 WORKDIR /app
 
-RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
+RUN addgroup -S appgroup && adduser -S -G appgroup appuser
 
 COPY requirements.txt .
 
@@ -466,6 +559,9 @@ USER appuser
 
 EXPOSE 8000
 
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2).read()" || exit 1
+
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 ```
 
@@ -473,7 +569,7 @@ CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 
 ## GitHub Actions CI
 
-El proyecto ya cuenta con un workflow en:
+El proyecto cuenta con un workflow en:
 
 ```text
 .github/workflows/webhook-validator-ci.yml
@@ -497,102 +593,29 @@ Jobs actuales:
 ```text
 Run Python tests
    ↓
-Build and smoke test Docker image
+Build, scan, and smoke test Docker image
 ```
 
-### Workflow actual esperado
+### Pipeline esperado
 
-```yaml
-name: Webhook Validator CI
-
-on:
-  push:
-    branches:
-      - main
-      - "feature/**"
-      - "security/**"
-    paths:
-      - "python-projects/webhook-validator-secops/**"
-      - ".github/workflows/webhook-validator-ci.yml"
-
-  pull_request:
-    branches:
-      - main
-    paths:
-      - "python-projects/webhook-validator-secops/**"
-      - ".github/workflows/webhook-validator-ci.yml"
-
-  workflow_dispatch:
-
-permissions:
-  contents: read
-
-jobs:
-  test:
-    name: Run Python tests
-    runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: python-projects/webhook-validator-secops
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
-          cache: "pip"
-          cache-dependency-path: "python-projects/webhook-validator-secops/requirements.txt"
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-
-      - name: Run tests
-        run: python -m pytest -v
-
-  docker-build:
-    name: Build and smoke test Docker image
-    runs-on: ubuntu-latest
-    needs: test
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build Docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: ./python-projects/webhook-validator-secops
-          file: ./python-projects/webhook-validator-secops/Dockerfile
-          push: false
-          load: true
-          tags: webhook-validator:ci
-
-      - name: Run container
-        run: |
-          docker run -d \
-            --name webhook-validator-ci \
-            -p 8000:8000 \
-            -e WEBHOOK_SECRET=dev-secret \
-            webhook-validator:ci
-
-      - name: Smoke test health endpoint
-        run: |
-          sleep 5
-          curl --fail http://localhost:8000/health
-
-      - name: Clean up container
-        if: always()
-        run: |
-          docker rm -f webhook-validator-ci || true
+```text
+Checkout repository
+   ↓
+Set up Python
+   ↓
+Install dependencies
+   ↓
+Run Pytest
+   ↓
+Build Docker image
+   ↓
+Run Trivy vulnerability scan
+   ↓
+Run container
+   ↓
+Smoke test /health
+   ↓
+Clean up container
 ```
 
 ### Nota sobre actualización de GitHub Actions
@@ -605,6 +628,83 @@ actions/setup-python@v6
 ```
 
 Esto mantiene el pipeline más limpio y evita depender de versiones próximas a quedar obsoletas.
+
+---
+
+## Trivy y CVE Triage
+
+Durante el escaneo con Trivy se encontraron dos grupos de hallazgos:
+
+```text
+1. Dependencias Python, especialmente Starlette.
+2. Paquetes del sistema operativo heredados de la imagen base Debian slim.
+```
+
+### Starlette
+
+Trivy reportó hallazgos HIGH en `starlette` con versiones corregidas disponibles.
+
+Acciones realizadas:
+
+- Se actualizó FastAPI.
+- Se fijó Starlette directamente como remediación temporal de seguridad.
+- Se ejecutó `pip check`.
+- Se ejecutó Pytest.
+- Se reconstruyó la imagen.
+- Se volvió a ejecutar Trivy.
+
+### Paquetes del sistema operativo
+
+Trivy también reportó HIGH/CRITICAL en paquetes heredados de `python:3.12-slim`, como:
+
+- `perl-base`
+- `util-linux`
+- `gzip`
+- `ncurses`
+- `libblkid`
+- `libmount`
+- `libuuid`
+
+Varios hallazgos no tenían `FixedVersion`.
+
+Decisión:
+
+- Se documentó el análisis en `SECURITY_AUDIT.md`.
+- Se probó una imagen base alternativa.
+- Se cambió de `python:3.12-slim` a `python:3.12-alpine`.
+
+Resultado:
+
+```text
+La imagen Alpine no arrojó findings HIGH ni CRITICAL en el escaneo probado.
+```
+
+---
+
+## Auditoría local de seguridad
+
+El proyecto incluye un flujo local para auditoría:
+
+```bash
+./scripts/local-security-audit.sh
+```
+
+Este script puede ejecutar:
+
+- Pytest
+- Bandit
+- pip-audit
+- Docker build
+- Trivy image scan
+- Generación de resumen con recomendaciones
+
+Los reportes se guardan en:
+
+```text
+audit-reports/
+```
+
+Esta carpeta está ignorada por Git.
 
 ---
 
@@ -623,13 +723,18 @@ Esto mantiene el pipeline más limpio y evita depender de versiones próximas a 
 - Se rechazan peticiones con firma inválida.
 - Se usa `hmac.compare_digest()` para comparar firmas de forma segura.
 - El secreto se carga mediante variable de entorno.
+- Producción requiere `WEBHOOK_SECRET` explícito.
+- Logging seguro sin secretos, firmas ni payloads completos.
+- `X-Request-ID` permite trazabilidad por request.
 
 ### Seguridad de contenedor
 
-- Imagen base ligera: `python:3.12-slim`.
+- Imagen base actual: `python:3.12-alpine`.
 - No se ejecuta la aplicación como root.
 - Se usa `.dockerignore` para evitar copiar archivos innecesarios.
 - Se usa `pip install --no-cache-dir` para reducir basura en la imagen.
+- Se agregó Docker `HEALTHCHECK`.
+- Se redujo superficie de ataque al migrar desde Debian slim a Alpine.
 
 ### Calidad y CI/CD
 
@@ -641,11 +746,14 @@ Esto mantiene el pipeline más limpio y evita depender de versiones próximas a 
 - El pipeline levanta el contenedor y ejecuta un smoke test contra `/health`.
 - El job de Docker depende del job de pruebas mediante `needs: test`.
 - Se aplican permisos mínimos en el workflow con `permissions: contents: read`.
+- Trivy se usa para validar vulnerabilidades en la imagen.
 - Repositorio versionado con Git y trabajo por branches.
 
 ---
 
-## Lección de Git aprendida durante el Día 4
+## Lecciones aprendidas durante el proyecto
+
+### Branch management
 
 Durante la actualización del workflow, una branch anterior quedó desfasada respecto a `main`.
 
@@ -668,42 +776,37 @@ main debe conservar el workflow completo con:
 - Build and smoke test Docker image
 ```
 
-Para limpiar una branch remota obsoleta:
+---
 
-```bash
-git push origin --delete feature/webhook-validator-ci
-```
+### Vulnerability triage
 
-Para borrarla localmente:
+El escaneo de seguridad no termina cuando una herramienta reporta vulnerabilidades.
 
-```bash
-git branch -D feature/webhook-validator-ci
+Proceso aplicado:
+
+```text
+Trivy finding
+   ↓
+Identificar paquete afectado
+   ↓
+Distinguir app dependency vs OS base image
+   ↓
+Revisar si existe FixedVersion
+   ↓
+Remediar si hay fix disponible
+   ↓
+Documentar si no hay fix
+   ↓
+Probar alternativa de base image
+   ↓
+Validar funcionalidad y volver a escanear
 ```
 
 ---
 
 ## Próximos sprints diarios de 2 horas
 
-Como los Días 1 al 4 ya están completados, el plan continúa desde el Día 5.
-
-### Día 5 — Trivy: escaneo de vulnerabilidades
-
-Objetivo:
-
-- Integrar Trivy en GitHub Actions.
-- Escanear la imagen Docker antes de considerarla lista para despliegue.
-
-Concepto:
-
-Trivy funcionará como un scanner de seguridad para detectar vulnerabilidades conocidas en paquetes del sistema, librerías y dependencias dentro de la imagen.
-
-Criterio de éxito:
-
-- El pipeline ejecuta Trivy.
-- El resultado aparece dentro de GitHub Actions.
-- Se define una política inicial para fallar el build ante vulnerabilidades críticas.
-
----
+Como los Días 1 al 5 ya están completados, el plan continúa desde el Día 6.
 
 ### Día 6 — AWS EC2: preparación segura y barata
 
@@ -851,6 +954,17 @@ Comparar una branch con `main`:
 git diff --name-only main..origin/<branch-name>
 ```
 
+Escanear imagen con Trivy:
+
+```bash
+docker run --rm \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  aquasec/trivy image \
+  --scanners vuln \
+  --severity HIGH,CRITICAL \
+  webhook-validator:local
+```
+
 ---
 
 ## Cómo explicar este proyecto en entrevista
@@ -862,14 +976,17 @@ La API en sí es simple: valida webhooks usando HMAC SHA-256. Pero el propósito
 - Controlé costos antes de crear infraestructura en AWS.
 - Escribí una API con validación de seguridad básica.
 - Agregué pruebas automatizadas para comprobar comportamiento esperado.
-- Empaqueté la aplicación en Docker usando una imagen ligera.
+- Empaqueté la aplicación en Docker.
 - Evité correr el contenedor como root.
+- Agregué healthcheck, readiness y request IDs.
 - Configuré GitHub Actions para ejecutar pruebas automáticamente.
 - Extendí el pipeline para construir la imagen Docker.
 - Agregué un smoke test para confirmar que el contenedor arranca y responde en `/health`.
-- Actualicé las acciones de GitHub para evitar deprecaciones relacionadas con Node.js 20.
-- El siguiente paso será escanear la imagen con Trivy antes del despliegue.
-- Finalmente, la app se desplegará en Kubernetes usando una alternativa barata a EKS.
+- Integré Trivy para analizar vulnerabilidades.
+- Investigué hallazgos CVE y diferencié dependencias Python de paquetes heredados de la imagen base.
+- Remedié Starlette cuando existía fix disponible.
+- Cambié la imagen base a Alpine para reducir la superficie de ataque.
+- El siguiente paso será desplegar la aplicación en Kubernetes usando una alternativa barata a EKS.
 
 En términos profesionales, este proyecto conecta conocimientos de seguridad, automatización, infraestructura y confiabilidad operacional.
 

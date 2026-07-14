@@ -32,6 +32,16 @@ Week 2 is focused on improving the quality and professionalism of the first port
 - ✅ Added JSON/CSV findings export with `--output-format`
 - ✅ Improved **Webhook Validator SecOps** with Docker build and smoke test in GitHub Actions
 - ✅ Updated GitHub Actions versions to avoid Node.js 20 deprecation warnings
+- ✅ Added Trivy vulnerability scanning to the Webhook Validator workflow
+- ✅ Added stronger secret handling for production-like environments
+- ✅ Added `/ready` readiness endpoint in addition to `/health`
+- ✅ Added request ID propagation with `X-Request-ID`
+- ✅ Added Docker `HEALTHCHECK`
+- ✅ Added `SECURITY_AUDIT.md` with OWASP-oriented security notes
+- ✅ Performed Trivy-based CVE triage for Python dependencies and OS packages
+- ✅ Updated FastAPI / Starlette dependency handling after vulnerability analysis
+- ✅ Switched Webhook Validator base image from `python:3.12-slim` to `python:3.12-alpine`
+- ✅ Verified Alpine-based image reduced Trivy HIGH/CRITICAL findings to zero in the tested scan
 - ✅ Continued branch-based development for cleaner implementation history
 - ✅ Completed available **OverTheWire Bandit CTF** levels through `bandit33`
 - ✅ Documented advanced Bandit concepts for README and study database updates
@@ -69,10 +79,16 @@ devsecops-learning-log/
 │       │   └── main.py
 │       ├── tests/
 │       │   └── test_main.py
+│       ├── scripts/
+│       │   ├── local-security-audit.sh
+│       │   └── audit_recommender.py
 │       ├── .dockerignore
+│       ├── .env.example
+│       ├── .gitignore
 │       ├── Dockerfile
 │       ├── pyproject.toml
 │       ├── requirements.txt
+│       ├── SECURITY_AUDIT.md
 │       └── README.md
 └── README.md
 ```
@@ -210,7 +226,7 @@ Latest expected local result:
 
 ## 2. Webhook Validator SecOps
 
-**Status:** ✅ API + Tests + Docker + CI + Docker Smoke Test  
+**Status:** ✅ API + Tests + Docker + CI + Trivy + Security Audit + Alpine Base Image  
 **Folder:** `python-projects/webhook-validator-secops/`  
 **Language:** Python 3  
 **Focus:** DevSecOps / SRE / Secure API Delivery
@@ -238,17 +254,26 @@ Webhook is accepted or rejected
 Completed so far:
 
 - ✅ FastAPI application
-- ✅ `/health` endpoint
+- ✅ `/health` liveness endpoint
+- ✅ `/ready` readiness endpoint
 - ✅ `/webhook` endpoint
 - ✅ HMAC SHA-256 signature validation
 - ✅ Secure comparison with `hmac.compare_digest()`
-- ✅ Pytest test suite
-- ✅ Dockerfile using `python:3.12-slim`
+- ✅ Production-like environments require explicit `WEBHOOK_SECRET`
+- ✅ Request tracing with `X-Request-ID`
+- ✅ Safe logging for accepted/rejected webhook events without exposing secrets, signatures, or payloads
+- ✅ Pytest test suite with 9 tests
+- ✅ Dockerfile using `python:3.12-alpine`
 - ✅ Non-root container user
+- ✅ Docker `HEALTHCHECK`
 - ✅ `.dockerignore`
 - ✅ GitHub Actions CI for Python tests
 - ✅ GitHub Actions Docker build
 - ✅ Automated container smoke test against `/health`
+- ✅ Trivy vulnerability scanning in the container security workflow
+- ✅ `SECURITY_AUDIT.md` with OWASP/CVE triage notes
+- ✅ CVE triage for Starlette findings and OS-level base image findings
+- ✅ Alpine base image experiment reduced Trivy HIGH/CRITICAL findings to zero in the tested image
 - ✅ Updated GitHub Actions versions:
   - `actions/checkout@v5`
   - `actions/setup-python@v6`
@@ -274,6 +299,12 @@ Health check:
 curl http://localhost:8000/health
 ```
 
+Readiness check:
+
+```bash
+curl http://localhost:8000/ready
+```
+
 ### Docker Usage
 
 Build image:
@@ -295,7 +326,24 @@ Smoke test:
 
 ```bash
 curl --fail http://localhost:8000/health
+curl --fail http://localhost:8000/ready
 ```
+
+### Security Audit Usage
+
+Run the local audit workflow from the project folder:
+
+```bash
+./scripts/local-security-audit.sh
+```
+
+Generated reports are stored locally in:
+
+```text
+audit-reports/
+```
+
+The reports are intentionally ignored by Git. The project keeps the repeatable audit workflow and the human-readable `SECURITY_AUDIT.md`, not noisy machine-generated output.
 
 ### CI/CD Pipeline
 
@@ -314,6 +362,8 @@ Run Python tests
    ↓
 Build Docker image
    ↓
+Run Trivy scan
+   ↓
 Run container
    ↓
 Smoke test /health endpoint
@@ -326,24 +376,31 @@ Clean up container
 - HMAC SHA-256 validation
 - Secure signature comparison with `hmac.compare_digest()`
 - Secret loaded from environment variable
+- Production-like environments require explicit secret configuration
+- `/ready` validates whether the service is configured to receive traffic
+- `X-Request-ID` supports request tracing
+- Safe logging avoids exposing secrets, signatures, and payloads
 - Non-root container user
-- Lightweight Docker image
+- Alpine-based runtime image to reduce OS package footprint
+- Docker `HEALTHCHECK`
 - Automated tests in CI
 - Docker smoke test in CI
+- Trivy-based vulnerability scanning
+- CVE triage documented in `SECURITY_AUDIT.md`
 - Workflow permissions limited with `contents: read`
 - AWS Budget configured before cloud infrastructure work
 
 ### Next Improvements
 
-The next sprint starts at **Day 5: Trivy**.
+The next sprint starts with cloud/Kubernetes preparation.
 
 Planned work:
 
-1. Add Trivy vulnerability scanning to GitHub Actions
-2. Fail the build on critical vulnerabilities
-3. Prepare low-cost AWS EC2 environment
-4. Install K3s or Minikube on EC2
-5. Create Kubernetes manifests
+1. Prepare low-cost AWS EC2 environment
+2. Install K3s or Minikube on EC2
+3. Create Kubernetes manifests
+4. Add Kubernetes `Secret` for `WEBHOOK_SECRET`
+5. Add readiness/liveness probes using `/ready` and `/health`
 6. Deploy the API to Kubernetes
 7. Document architecture and evidence for portfolio use
 
@@ -406,7 +463,8 @@ Bandit reinforced several real-world DevSecOps lessons:
 - [x] Dockerized Webhook Validator
 - [x] GitHub Actions CI for tests
 - [x] Docker build and smoke test in CI
-- [ ] Add Trivy image scanning
+- [x] Trivy image scanning and CVE triage
+- [x] Alpine base image hardening experiment
 - [ ] Continue AWS CLI and IAM practice
 - [ ] Start Kubernetes fundamentals with K3s or Minikube
 
@@ -452,7 +510,10 @@ Bandit reinforced several real-world DevSecOps lessons:
 - [x] Add `--fail-on-severity` security gate
 - [x] Add CSV export for audit findings
 - [x] Update Webhook Validator CI with Docker build and smoke test
-- [ ] Add Trivy scan to Webhook Validator CI
+- [x] Add Trivy scan to Webhook Validator CI / security workflow
+- [x] Add Webhook Validator `SECURITY_AUDIT.md`
+- [x] Remediate Starlette dependency findings
+- [x] Switch Webhook Validator runtime image to Alpine after CVE triage
 - [ ] Continue KodeKloud networking fundamentals
 - [ ] Continue AWS CLI hands-on practice
 - [ ] Prepare for Kubernetes lab using EC2 + K3s or Minikube
@@ -467,14 +528,14 @@ Bandit reinforced several real-world DevSecOps lessons:
 | KodeKloud Labs | 13+ | 20 |
 | Portfolio Projects | 2 | 2 |
 | CTF Documentation Sets | 1 | 1 |
-| Automated Tests | 44+ | 45+ |
+| Automated Tests | 49+ | 50+ |
 | Dockerized Projects | 1 | 2 |
 | CI/CD Pipelines | 2 | 2 |
 | Security Alerting Integrations | 1 | 1 |
-| Security Gate Features | 1 | 1 |
-| GitHub Commits | 70+ | 100+ |
+| Security Gate Features | 2 | 2 |
+| GitHub Commits | 75+ | 100+ |
 
-> Automated tests currently include 40+ tests for S3 Security Auditor and 4 tests for Webhook Validator.
+> Automated tests currently include 40+ tests for S3 Security Auditor and 9 tests for Webhook Validator.
 
 ---
 
@@ -494,6 +555,7 @@ Bandit reinforced several real-world DevSecOps lessons:
 - ✅ Test parametrization
 - ✅ Temporary file testing with `tmp_path`
 - ✅ Mocking external integrations
+- ✅ Dependency vulnerability remediation
 - 📋 AWS automation with `boto3`
 
 ### DevOps / SRE
@@ -501,6 +563,7 @@ Bandit reinforced several real-world DevSecOps lessons:
 - ✅ Docker image build
 - ✅ Non-root container execution
 - ✅ Container smoke testing
+- ✅ Docker healthcheck
 - ✅ GitHub Actions CI
 - ✅ CI job dependencies with `needs`
 - ✅ Workflow path filters
@@ -509,7 +572,10 @@ Bandit reinforced several real-world DevSecOps lessons:
 - ✅ Cleaning obsolete files safely
 - ✅ Git over SSH with custom ports
 - ✅ Git history, branch, and tag inspection
-- 🔄 Trivy vulnerability scanning
+- ✅ Liveness and readiness endpoint design
+- ✅ Request ID tracing
+- ✅ Trivy vulnerability scanning
+- ✅ Base image comparison and hardening
 - 📋 Kubernetes deployment with K3s or Minikube
 
 ### Cloud Security / DevSecOps
@@ -520,12 +586,16 @@ Bandit reinforced several real-world DevSecOps lessons:
 - ✅ JSON and CSV evidence generation
 - ✅ Secure webhook validation
 - ✅ Secret handling with environment variables
+- ✅ Production-like secret enforcement
 - ✅ Basic CI/CD security practices
 - ✅ Docker security basics
+- ✅ Container CVE triage
+- ✅ Alpine base image hardening
+- ✅ Security audit documentation
 - ✅ Secret exposure analysis in Git repositories
 - ✅ Cron job and automation auditing
 - ✅ Controlled brute force awareness in lab context
-- 🔄 Image vulnerability scanning
+- ✅ Image vulnerability scanning
 - 📋 AWS IAM and EC2 security basics
 
 ---
@@ -545,6 +615,9 @@ git switch -c feature/s3-auditor-fail-threshold
 git switch -c feature/s3-auditor-csv-output
 git switch -c chore/remove-obsolete-week-01
 git switch -c docs/add-bandit-final-notes
+git switch -c security/update-fastapi-starlette
+git switch -c security/add-cve-research-notes
+git switch -c security/test-alpine-base-image
 ```
 
 This keeps `main` cleaner and makes every repository change easier to review.
@@ -559,7 +632,7 @@ This keeps `main` cleaner and makes every repository change easier to review.
 
 ### Webhook Validator SecOps
 
-> I built a FastAPI microservice that validates incoming webhooks using HMAC SHA-256. The value of the project is the end-to-end DevSecOps workflow: tests with pytest, Docker packaging, non-root container execution, GitHub Actions CI, Docker image build, and a smoke test that verifies the container responds correctly before future deployment.
+> I built a FastAPI microservice that validates incoming webhooks using HMAC SHA-256. The value of the project is the end-to-end DevSecOps workflow: tests with pytest, Docker packaging, non-root container execution, GitHub Actions CI, Docker image build, Trivy vulnerability scanning, smoke testing, readiness/liveness endpoints, and CVE triage. Trivy identified dependency and base-image findings, so I updated Python dependencies, documented the CVE research, and switched the runtime image from Debian slim to Alpine after confirming the Alpine image produced no HIGH or CRITICAL findings in the tested scan.
 
 ### Bandit CTF Practice
 
@@ -577,6 +650,10 @@ Together, these projects show that I can:
 - Add basic security gates
 - Manage secrets safely
 - Generate both machine-readable and human-readable security findings
+- Analyze container vulnerability scan output
+- Distinguish fixable dependency findings from base image findings without available fixes
+- Remediate dependencies safely with tests and `pip check`
+- Reduce container attack surface by changing base images
 - Audit repositories for secret exposure patterns
 - Analyze Linux permissions and automation risks
 - Work through branches like a real engineering workflow
@@ -600,6 +677,7 @@ Every meaningful project should have:
 - Git branch history
 - CI/CD or automation where appropriate
 - Machine-readable and human-readable outputs when useful
+- Security audit notes when scanners are used
 - Next-step roadmap
 - Study notes that explain concepts, not just commands
 ```
@@ -614,7 +692,7 @@ Code projects are shared freely for educational purposes.
 
 ---
 
-**Last Updated:** July 13, 2026  
+**Last Updated:** July 14, 2026  
 **Current Week:** Week 2 in progress  
-**Next Milestone:** Trivy scan in Webhook Validator CI  
-**Momentum:** Strong — Bandit CTF available levels are complete, and the repository now focuses on portfolio-ready DevSecOps projects, structured documentation, testing, CI, reporting, and security automation.
+**Next Milestone:** Low-cost AWS EC2 + K3s/Minikube lab preparation  
+**Momentum:** Strong — Bandit CTF available levels are complete, both portfolio projects now have CI, and Webhook Validator includes container scanning, CVE triage, dependency remediation, and Alpine base image hardening.

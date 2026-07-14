@@ -46,6 +46,17 @@ Week 2 is focused on improving the quality and professionalism of the first port
 - ✅ Completed available **OverTheWire Bandit CTF** levels through `bandit33`
 - ✅ Documented advanced Bandit concepts for README and study database updates
 - ✅ Continued KodeKloud Linux, Git, AWS, Azure, and MLOps/Jupyter labs
+- ✅ Completed Linux permissions lab for executable Bash scripts using `chmod 755`
+- ✅ Created Linux users with non-interactive shells for service-style accounts
+- ✅ Practiced SELinux package installation and permanent disablement through `/etc/selinux/config`
+- ✅ Completed Linux troubleshooting scenario for a two-tier Python/PostgreSQL application
+- ✅ Configured PostgreSQL remote access through `pg_hba.conf` and validated service/port status
+- ✅ Created a `systemd` service unit for a Python web application running as a non-root user
+- ✅ Completed Git cleanup lab using `.gitignore` plus `git rm --cached` for already-tracked artifacts
+- ✅ Completed Gitea UI fork workflow for `sarah/story-blog` under user `jon`
+- ✅ Completed AWS labs for Security Groups, S3 versioning, and subnet creation under the default VPC
+- ✅ Completed Azure labs for SSH keys, VM creation, VNet creation, and CLI-based resource validation
+- ✅ Completed MLOps dependency-management lab using `uv pip compile` and pinned lockfiles
 
 > **Bandit completion note:** Bandit level 34 does not currently exist, so `bandit33` represents the current end of the available Bandit wargame path.
 
@@ -437,11 +448,85 @@ Bandit reinforced several real-world DevSecOps lessons:
 | Platform | Status | Focus Area | Progress |
 |---|---|---|---|
 | Bandit CTF | ✅ Completed available path | Linux security, Git security, shell escapes | Completed through `bandit33` |
-| KodeKloud | ✅ Active | Linux, cloud, DevOps labs | 13+ labs |
+| KodeKloud | ✅ Active | Linux, cloud, DevOps, MLOps, troubleshooting labs | 25+ labs |
 | KillerCoda | ✅ Active | Interactive scenarios | 2 lessons |
 | LabEx | ✅ Active | Hands-on Linux labs | 4 labs |
 | Exercism | ✅ Active | Bash scripting | 1 exercise |
 | AWS Free Tier | 🔄 Starting | Cloud hands-on | Budget configured |
+
+---
+
+## Recent Hands-On Lab Progress
+
+### KodeKloud / Linux Administration
+
+Completed additional Linux administration and troubleshooting work focused on operational readiness:
+
+- Created users with non-interactive shells using `useradd -s /sbin/nologin`.
+- Managed temporary and service-style accounts.
+- Added users to supplementary groups with `usermod -aG`.
+- Hardened SSH by setting `PermitRootLogin no`.
+- Used `grep` and `sed` to locate and edit configuration without interactive editors.
+- Fixed duplicate SSH directives that could cause validation failures.
+- Practiced file ownership changes with `chown -R`.
+- Correctly applied executable permissions for Bash scripts using `chmod 755`.
+- Installed SELinux-related packages and configured `/etc/selinux/config` so SELinux will be disabled after reboot.
+
+### Linux Troubleshooting — Project Mercury
+
+Completed a two-tier troubleshooting lab involving a Python web application and PostgreSQL database:
+
+- Copied application artifacts with `scp`.
+- Extracted a `.tar.gz` application bundle into `/opt/`.
+- Verified expected paths such as `/opt/caleston-code/mercuryProject/`.
+- Started and validated `postgresql.service`.
+- Updated `pg_hba.conf` to allow remote database connections.
+- Confirmed PostgreSQL port `5432` with `netstat`.
+- Located Django database configuration with `grep -R`.
+- Updated DB host from `localhost` to `devdb01`.
+- Corrected the PostgreSQL port to `5432`.
+- Changed application ownership to user `mercury`.
+- Created and enabled a `systemd` service named `mercury.service`.
+
+### Git / Gitea / Repository Hygiene
+
+Completed Git workflow and cleanup labs:
+
+- Cloned a bare repository from `/opt/blog.git` into `/usr/src/kodekloudrepos`.
+- Forked `sarah/story-blog` to `jon/story-blog` through the Gitea UI.
+- Created `.gitignore` for Python and ML artifacts.
+- Removed already-tracked generated artifacts from Git's index using `git rm --cached`.
+- Preserved source files such as `src/fraud_detection/`, `README.md`, and `requirements.txt`.
+
+### AWS Labs
+
+Completed AWS CLI labs for foundational cloud networking and data protection:
+
+- Created Security Group `devops-sg` under the default VPC.
+- Added inbound HTTP `80` and SSH `22` rules from `0.0.0.0/0` for lab requirements.
+- Created subnet `xfusion-subnet` under the default VPC.
+- Validated subnet CIDR planning to avoid overlap with existing default subnets.
+- Enabled S3 bucket versioning for `devops-s3-21114`.
+
+### Azure Labs
+
+Completed Azure CLI labs for migration foundations:
+
+- Created Azure SSH key pairs with RSA.
+- Created Azure VMs using CLI with Ubuntu images, Standard SKU disks, and generated SSH keys.
+- Created VNet `nautilus-vnet` in `westus` using an IPv4 CIDR block.
+- Practiced resource group discovery and variable usage with `az group list`, `az group show`, and `az vm create`.
+- Resolved common CLI mistakes such as copying placeholder brackets like `<RESOURCE_GROUP>` literally.
+
+### MLOps Labs
+
+Completed MLOps-focused operational labs:
+
+- Corrected `requirements.in` for a fraud-detection project.
+- Used `uv pip compile` to generate pinned `requirements.txt` lockfiles.
+- Created `.gitignore` rules for Python bytecode, virtual environments, Jupyter checkpoints, model artifacts, and local `.env` files.
+- Untracked generated artifacts while keeping them on disk.
+- Troubleshot JupyterLab configuration for port, IP binding, and root directory.
 
 ---
 
@@ -465,7 +550,10 @@ Bandit reinforced several real-world DevSecOps lessons:
 - [x] Docker build and smoke test in CI
 - [x] Trivy image scanning and CVE triage
 - [x] Alpine base image hardening experiment
-- [ ] Continue AWS CLI and IAM practice
+- [x] Continue AWS CLI hands-on practice for S3, VPC, subnets, and security groups
+- [x] Continue Azure CLI hands-on practice for VMs and VNets
+- [x] Add MLOps labs for dependency locking, JupyterLab troubleshooting, and Git hygiene
+- [ ] Continue AWS IAM practice
 - [ ] Start Kubernetes fundamentals with K3s or Minikube
 
 > Bandit level 34 is not currently available, so the Bandit CTF milestone is complete for the available path.
@@ -514,8 +602,11 @@ Bandit reinforced several real-world DevSecOps lessons:
 - [x] Add Webhook Validator `SECURITY_AUDIT.md`
 - [x] Remediate Starlette dependency findings
 - [x] Switch Webhook Validator runtime image to Alpine after CVE triage
-- [ ] Continue KodeKloud networking fundamentals
-- [ ] Continue AWS CLI hands-on practice
+- [x] Continue KodeKloud networking fundamentals with AWS subnet and security group labs
+- [x] Continue AWS CLI hands-on practice with S3 versioning, subnet, and security group labs
+- [x] Continue Azure CLI hands-on practice with VM and VNet labs
+- [x] Complete Linux troubleshooting lab for a two-tier app with PostgreSQL and systemd
+- [x] Complete MLOps labs for `uv` lockfiles and `.gitignore` cleanup
 - [ ] Prepare for Kubernetes lab using EC2 + K3s or Minikube
 
 ---
@@ -525,7 +616,7 @@ Bandit reinforced several real-world DevSecOps lessons:
 | Metric | Current Progress | Month 1 Target |
 |---|---:|---:|
 | Bandit CTF Challenges | Completed through `bandit33` | Complete available path |
-| KodeKloud Labs | 13+ | 20 |
+| KodeKloud Labs | 25+ | 30 |
 | Portfolio Projects | 2 | 2 |
 | CTF Documentation Sets | 1 | 1 |
 | Automated Tests | 49+ | 50+ |
@@ -572,6 +663,10 @@ Bandit reinforced several real-world DevSecOps lessons:
 - ✅ Cleaning obsolete files safely
 - ✅ Git over SSH with custom ports
 - ✅ Git history, branch, and tag inspection
+- ✅ Gitea fork workflow
+- ✅ `.gitignore` cleanup and `git rm --cached`
+- ✅ Linux service troubleshooting with `systemctl`, `journalctl`, `netstat`, and `ss`
+- ✅ `systemd` unit creation for Python applications
 - ✅ Liveness and readiness endpoint design
 - ✅ Request ID tracing
 - ✅ Trivy vulnerability scanning
@@ -589,6 +684,13 @@ Bandit reinforced several real-world DevSecOps lessons:
 - ✅ Production-like secret enforcement
 - ✅ Basic CI/CD security practices
 - ✅ Docker security basics
+- ✅ Linux file permission hardening for executable scripts
+- ✅ SSH hardening with `PermitRootLogin no`
+- ✅ SELinux configuration basics
+- ✅ AWS S3 versioning
+- ✅ AWS Security Groups and subnet basics
+- ✅ Azure VM and VNet creation with CLI
+- ✅ MLOps dependency locking with `uv`
 - ✅ Container CVE triage
 - ✅ Alpine base image hardening
 - ✅ Security audit documentation
@@ -657,6 +759,9 @@ Together, these projects show that I can:
 - Audit repositories for secret exposure patterns
 - Analyze Linux permissions and automation risks
 - Work through branches like a real engineering workflow
+- Troubleshoot multi-server Linux applications under realistic constraints
+- Configure cloud primitives in AWS and Azure using CLI workflows
+- Apply MLOps hygiene around lockfiles, generated artifacts, and repository cleanup
 - Explain both the technical and security value of what I build
 
 ---
@@ -695,4 +800,4 @@ Code projects are shared freely for educational purposes.
 **Last Updated:** July 14, 2026  
 **Current Week:** Week 2 in progress  
 **Next Milestone:** Low-cost AWS EC2 + K3s/Minikube lab preparation  
-**Momentum:** Strong — Bandit CTF available levels are complete, both portfolio projects now have CI, and Webhook Validator includes container scanning, CVE triage, dependency remediation, and Alpine base image hardening.
+**Momentum:** Strong — Bandit CTF available levels are complete, both portfolio projects now have CI, and recent labs expanded hands-on coverage across Linux troubleshooting, systemd, PostgreSQL connectivity, AWS networking/S3, Azure CLI, Git hygiene, and MLOps dependency locking.

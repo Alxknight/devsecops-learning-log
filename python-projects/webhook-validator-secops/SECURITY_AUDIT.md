@@ -143,3 +143,20 @@ Validation commands used:
 python -m pip check
 python -m pytest -v
 docker build --pull --no-cache -t webhook-validator:starlette-remediation .
+
+---
+
+## Alpine Base Image Experiment Result
+
+### Context
+
+After Trivy reported multiple HIGH and CRITICAL vulnerabilities inherited from the Debian-based `python:3.12-slim` image, an alternative base image was tested.
+
+The goal was to determine whether a smaller runtime image could reduce the operating system package attack surface without breaking the application.
+
+### Change Tested
+
+The Docker base image was changed from:
+
+```dockerfile
+FROM python:3.12-slim

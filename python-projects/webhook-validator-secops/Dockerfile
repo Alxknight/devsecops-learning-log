@@ -6,7 +6,8 @@ ENV APP_ENV=production
 
 WORKDIR /app
 
-RUN addgroup -S appgroup && adduser -S -G appgroup appuser
+RUN addgroup -S -g 10001 appgroup \
+    && adduser -S -D -H -u 10001 -G appgroup appuser
 
 COPY requirements.txt .
 
@@ -15,7 +16,7 @@ RUN pip install --no-cache-dir --upgrade pip \
 
 COPY app ./app
 
-USER appuser
+USER 10001:10001
 
 EXPOSE 8000
 

@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: webhook-validator
+  labels:
+    app.kubernetes.io/name: webhook-validator
+    app.kubernetes.io/part-of: webhook-validator-secops
+

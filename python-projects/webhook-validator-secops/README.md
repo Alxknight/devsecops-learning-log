@@ -1,12 +1,12 @@
 # Webhook Validator DevSecOps Project
 
-Microservicio sencillo en Python para validar webhooks mediante firma **HMAC SHA-256**.
+Microservicio en Python para validar webhooks mediante firma **HMAC SHA-256**.
 
 El valor principal de este proyecto no está en la complejidad del código Python, sino en construir un flujo **End-to-End DevSecOps/SRE** realista:
 
 - API en Python con FastAPI.
 - Pruebas automatizadas con Pytest.
-- Imagen Docker optimizada.
+- Imagen Docker optimizada y endurecida.
 - CI/CD con GitHub Actions.
 - Build automático de imagen Docker en CI.
 - Smoke test automático del contenedor.
@@ -14,7 +14,9 @@ El valor principal de este proyecto no está en la complejidad del código Pytho
 - Documentación de hallazgos en `SECURITY_AUDIT.md`.
 - Triage de CVE y remediación de dependencias.
 - Reducción de superficie de ataque mediante imagen base Alpine.
-- Despliegue futuro en Kubernetes usando K3s o Minikube dentro de una instancia EC2 en AWS.
+- Preparación para Kubernetes con manifests declarativos.
+- Despliegue local en Kubernetes usando Minikube.
+- Automatización del despliegue local con scripts Bash.
 - Control de costos desde el inicio con AWS Budgets.
 
 ---
@@ -42,12 +44,16 @@ CVE triage
    ↓
 Remediación o documentación de riesgo
    ↓
-Infraestructura cloud
+Imagen endurecida
    ↓
-Kubernetes
+Kubernetes local
    ↓
 Despliegue controlado
+   ↓
+Futuro despliegue cloud
 ```
+
+La aplicación es sencilla a propósito. El objetivo real es practicar el flujo completo de entrega segura: desarrollo, testing, contenedores, seguridad, CI/CD, troubleshooting y Kubernetes.
 
 ---
 
@@ -82,20 +88,20 @@ Acepta o rechaza el webhook
 
 ## Estado actual del proyecto
 
-| Día | Estado | Descripción |
+| Día / Bloque | Estado | Descripción |
 |---|---:|---|
 | Día 1 | Completado | Configuración de AWS Budget de $5 USD y estructura base del repositorio. |
 | Día 2 | Completado | API local con FastAPI, pruebas con Pytest, Dockerfile, `.dockerignore` e imagen Docker funcional. |
 | Día 3 | Completado | GitHub Actions ejecuta pruebas automáticamente en cada push y pull request. |
 | Día 4 | Completado | GitHub Actions construye la imagen Docker, levanta el contenedor y ejecuta smoke test contra `/health`. |
 | Día 5 | Completado | Trivy, CVE triage, actualización de dependencias, `SECURITY_AUDIT.md` y cambio de imagen base a Alpine. |
-| Día 6 | Próximo | Preparación segura de EC2 en AWS para laboratorio Kubernetes barato. |
-| Día 7 | Pendiente | Instalación de K3s o Minikube en EC2. |
-| Día 8 | Pendiente | Creación de manifiestos Kubernetes: Deployment, Service y Secrets. |
-| Día 9 | Pendiente | Despliegue de la aplicación en Kubernetes. |
-| Día 10 | Pendiente | Documentación final, evidencias, diagrama de arquitectura y retrospectiva técnica. |
+| Día 6 | Completado | Instalación y prueba local de Kubernetes con Minikube, `kubectl`, manifests, Secret, Deployment y Service. |
+| Día 7 | Completado | Automatización del despliegue local en Kubernetes con scripts Bash. |
+| Día 8 | Próximo | Validación de manifests Kubernetes en CI con `kubectl --dry-run`, kube-score o kube-linter. |
+| Día 9 | Pendiente | Publicar imagen en GHCR o Docker Hub para despliegues fuera del entorno local. |
+| Día 10 | Pendiente | Preparar despliegue barato en AWS EC2 con K3s o Minikube. |
 
-> Nota actual: el proyecto ya cuenta con CI funcional, build Docker, smoke test, Trivy, documentación de seguridad, triage de CVE y una imagen Alpine que redujo los hallazgos HIGH/CRITICAL en el escaneo probado.
+> Nota actual: el proyecto ya cuenta con CI funcional, build Docker, smoke test, Trivy, documentación de seguridad, triage de CVE, imagen Alpine sin hallazgos HIGH/CRITICAL en el escaneo probado, y despliegue local funcional en Kubernetes usando Minikube.
 
 ---
 
@@ -124,9 +130,33 @@ Acepta o rechaza el webhook
 ┌─────────────────────────────┐
 │ Docker Container            │
 │ python:3.12-alpine          │
-│ non-root user               │
+│ non-root numeric UID/GID    │
 │ Docker HEALTHCHECK          │
 └─────────────────────────────┘
+```
+
+Arquitectura local con Kubernetes:
+
+```text
+Developer machine / WSL2
+   ↓
+Docker image: webhook-validator:local
+   ↓
+Minikube image load
+   ↓
+Kubernetes namespace: webhook-validator
+   ↓
+Kubernetes Secret: WEBHOOK_SECRET
+   ↓
+Deployment
+   ↓
+Pod
+   ↓
+Service ClusterIP
+   ↓
+kubectl port-forward
+   ↓
+curl /health, /ready, /webhook
 ```
 
 Arquitectura actual del pipeline:
@@ -164,6 +194,10 @@ Docker Build
    ↓
 Trivy Scan
    ↓
+Kubernetes manifest validation
+   ↓
+Container registry
+   ↓
 AWS EC2
    ↓
 K3s / Minikube
@@ -192,8 +226,12 @@ Readiness/Liveness Probes
 | Escaneo de seguridad | Trivy |
 | Auditoría local | `scripts/local-security-audit.sh` |
 | Reporte de seguridad | `SECURITY_AUDIT.md` |
-| Cloud | AWS EC2 |
-| Orquestación | Kubernetes con K3s o Minikube |
+| Kubernetes local | Minikube |
+| Kubernetes CLI | kubectl |
+| Manifests | Namespace, Secret example, Deployment, Service |
+| Automatización local K8s | Bash scripts |
+| Cloud futuro | AWS EC2 |
+| Orquestación futura | Kubernetes con K3s o Minikube |
 | Control de costos | AWS Budgets |
 
 ---
@@ -214,9 +252,17 @@ devsecops-learning-log/
         │   └── main.py
         ├── tests/
         │   └── test_main.py
+        ├── k8s/
+        │   ├── namespace.yaml
+        │   ├── secret.example.yaml
+        │   ├── deployment.yaml
+        │   ├── service.yaml
+        │   └── README.md
         ├── scripts/
+        │   ├── audit_recommender.py
         │   ├── local-security-audit.sh
-        │   └── audit_recommender.py
+        │   ├── k8s-local-deploy.sh
+        │   └── k8s-local-cleanup.sh
         ├── .dockerignore
         ├── .env.example
         ├── .gitignore
@@ -248,6 +294,8 @@ Respuesta esperada:
 
 Este endpoint confirma que el proceso de la aplicación está vivo.
 
+En Kubernetes se usa como **liveness probe**.
+
 ---
 
 ### Readiness Check
@@ -262,11 +310,13 @@ Respuesta esperada en ambiente listo:
 {
   "status": "ready",
   "service": "webhook-validator",
-  "environment": "development"
+  "environment": "production"
 }
 ```
 
 En ambientes production-like, `/ready` valida que `WEBHOOK_SECRET` esté configurado.
+
+En Kubernetes se usa como **readiness probe**.
 
 ---
 
@@ -325,14 +375,25 @@ WEBHOOK_SECRET
 
 Para ambientes locales de desarrollo se permite un secreto de prueba. Para ambientes production-like, el secreto debe estar definido explícitamente.
 
-Esto prepara el proyecto para usar un futuro `Secret` de Kubernetes.
-
 Variables documentadas:
 
 ```env
 APP_ENV=development
 WEBHOOK_SECRET=dev-secret
 ```
+
+En Kubernetes, `WEBHOOK_SECRET` se entrega mediante un **Kubernetes Secret**.
+
+Ejemplo local:
+
+```bash
+kubectl create secret generic webhook-validator-secret \
+  --namespace webhook-validator \
+  --from-literal=WEBHOOK_SECRET=dev-secret \
+  --dry-run=client -o yaml | kubectl apply -f -
+```
+
+El archivo `k8s/secret.example.yaml` es solo una plantilla. No debe contener secretos reales.
 
 ---
 
@@ -377,7 +438,7 @@ Webhook rejected: invalid signature | request_id=<id> | payload_size=<size>
 
 ---
 
-## Cómo correr el proyecto localmente
+## Cómo correr el proyecto localmente sin Docker
 
 ### 1. Crear entorno virtual
 
@@ -546,7 +607,8 @@ ENV APP_ENV=production
 
 WORKDIR /app
 
-RUN addgroup -S appgroup && adduser -S -G appgroup appuser
+RUN addgroup -S -g 10001 appgroup \
+    && adduser -S -D -H -u 10001 -G appgroup appuser
 
 COPY requirements.txt .
 
@@ -555,7 +617,7 @@ RUN pip install --no-cache-dir --upgrade pip \
 
 COPY app ./app
 
-USER appuser
+USER 10001:10001
 
 EXPOSE 8000
 
@@ -563,6 +625,211 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
   CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2).read()" || exit 1
 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+```
+
+### Nota sobre UID/GID numérico
+
+Durante la prueba en Kubernetes apareció este error:
+
+```text
+container has runAsNonRoot and image has non-numeric user (appuser), cannot verify user is non-root
+```
+
+La solución fue usar un UID/GID explícito:
+
+```dockerfile
+USER 10001:10001
+```
+
+Esto permite que Kubernetes verifique que el contenedor no corre como root sin desactivar el control `runAsNonRoot`.
+
+---
+
+## Kubernetes local con Minikube
+
+El proyecto ya puede desplegarse localmente en Kubernetes usando Minikube.
+
+### Requisitos locales
+
+```bash
+docker --version
+kubectl version --client
+minikube version
+```
+
+Arrancar Minikube:
+
+```bash
+minikube start --driver=docker --cpus=2 --memory=3072 --disk-size=10g
+```
+
+Verificar el cluster:
+
+```bash
+minikube status
+kubectl get nodes
+```
+
+Resultado esperado:
+
+```text
+NAME       STATUS   ROLES           AGE   VERSION
+minikube   Ready    control-plane   ...
+```
+
+---
+
+## Manifests Kubernetes
+
+La carpeta `k8s/` contiene:
+
+| Archivo | Propósito |
+|---|---|
+| `namespace.yaml` | Crea el namespace `webhook-validator` |
+| `secret.example.yaml` | Plantilla de Secret sin secretos reales |
+| `deployment.yaml` | Define cómo correr la API en Kubernetes |
+| `service.yaml` | Expone la app dentro del cluster usando ClusterIP |
+| `README.md` | Documenta el flujo Kubernetes del proyecto |
+
+Objetos Kubernetes usados:
+
+| Objeto | Uso |
+|---|---|
+| Namespace | Aísla los recursos del proyecto |
+| Secret | Inyecta `WEBHOOK_SECRET` |
+| Deployment | Administra el Pod de la aplicación |
+| Pod | Ejecuta el contenedor |
+| Service | Da una dirección interna estable |
+| Readiness Probe | Valida si la app está lista |
+| Liveness Probe | Valida si la app sigue viva |
+| Resource Requests/Limits | Define CPU y memoria |
+| Security Context | Aplica controles básicos de seguridad |
+
+---
+
+## Despliegue local automatizado en Kubernetes
+
+El proyecto incluye scripts para automatizar el flujo local.
+
+Desde la carpeta del proyecto:
+
+```bash
+./scripts/k8s-local-deploy.sh
+```
+
+El script realiza:
+
+1. Verifica que Docker, kubectl y Minikube estén disponibles.
+2. Arranca Minikube si no está corriendo.
+3. Construye la imagen local.
+4. Carga la imagen en Minikube.
+5. Aplica el namespace.
+6. Crea o actualiza el Secret local.
+7. Aplica el Deployment y el Service.
+8. Reinicia el Deployment para usar la imagen más reciente.
+9. Espera que el rollout termine.
+10. Muestra los recursos creados.
+
+Para probar la aplicación:
+
+```bash
+kubectl port-forward svc/webhook-validator 8080:80 -n webhook-validator
+```
+
+En otra terminal:
+
+```bash
+curl http://localhost:8080/health
+curl http://localhost:8080/ready
+```
+
+---
+
+## Despliegue manual en Kubernetes
+
+También puede ejecutarse paso por paso.
+
+### 1. Construir imagen
+
+```bash
+docker build -t webhook-validator:local .
+```
+
+### 2. Cargar imagen en Minikube
+
+```bash
+minikube image load webhook-validator:local
+```
+
+### 3. Aplicar namespace
+
+```bash
+kubectl apply -f k8s/namespace.yaml
+```
+
+### 4. Crear Secret local
+
+```bash
+kubectl create secret generic webhook-validator-secret \
+  --namespace webhook-validator \
+  --from-literal=WEBHOOK_SECRET=dev-secret \
+  --dry-run=client -o yaml | kubectl apply -f -
+```
+
+### 5. Aplicar Deployment y Service
+
+```bash
+kubectl apply -f k8s/deployment.yaml
+kubectl apply -f k8s/service.yaml
+```
+
+### 6. Esperar rollout
+
+```bash
+kubectl rollout status deployment/webhook-validator -n webhook-validator --timeout=120s
+```
+
+### 7. Probar con port-forward
+
+```bash
+kubectl port-forward svc/webhook-validator 8080:80 -n webhook-validator
+```
+
+En otra terminal:
+
+```bash
+curl http://localhost:8080/health
+curl http://localhost:8080/ready
+```
+
+---
+
+## Limpieza local de Kubernetes
+
+Para borrar los recursos locales del proyecto:
+
+```bash
+./scripts/k8s-local-cleanup.sh
+```
+
+Esto elimina el namespace `webhook-validator` y todos los recursos dentro.
+
+También puede hacerse manualmente:
+
+```bash
+kubectl delete namespace webhook-validator --ignore-not-found=true
+```
+
+Para detener Minikube sin borrar el cluster:
+
+```bash
+minikube stop
+```
+
+Para borrar completamente el cluster local:
+
+```bash
+minikube delete
 ```
 
 ---
@@ -731,10 +998,24 @@ Esta carpeta está ignorada por Git.
 
 - Imagen base actual: `python:3.12-alpine`.
 - No se ejecuta la aplicación como root.
+- Se usa UID/GID numérico `10001:10001`.
 - Se usa `.dockerignore` para evitar copiar archivos innecesarios.
 - Se usa `pip install --no-cache-dir` para reducir basura en la imagen.
 - Se agregó Docker `HEALTHCHECK`.
 - Se redujo superficie de ataque al migrar desde Debian slim a Alpine.
+
+### Seguridad de Kubernetes
+
+- Namespace dedicado para el proyecto.
+- `WEBHOOK_SECRET` se entrega mediante Kubernetes Secret.
+- Deployment usa `runAsNonRoot`.
+- Contenedor usa UID/GID numérico para compatibilidad con Kubernetes.
+- Se define `allowPrivilegeEscalation: false`.
+- Se eliminan Linux capabilities innecesarias con `drop: ALL`.
+- Se configura `readinessProbe` en `/ready`.
+- Se configura `livenessProbe` en `/health`.
+- Se definen resource requests y limits.
+- Se usa `ClusterIP` en lugar de exponer públicamente el servicio.
 
 ### Calidad y CI/CD
 
@@ -748,6 +1029,7 @@ Esta carpeta está ignorada por Git.
 - Se aplican permisos mínimos en el workflow con `permissions: contents: read`.
 - Trivy se usa para validar vulnerabilidades en la imagen.
 - Repositorio versionado con Git y trabajo por branches.
+- Despliegue local Kubernetes automatizado con Bash.
 
 ---
 
@@ -804,103 +1086,34 @@ Validar funcionalidad y volver a escanear
 
 ---
 
-## Próximos sprints diarios de 2 horas
+### Kubernetes troubleshooting
 
-Como los Días 1 al 5 ya están completados, el plan continúa desde el Día 6.
+Durante el primer despliegue local en Kubernetes, el Pod quedó en:
 
-### Día 6 — AWS EC2: preparación segura y barata
+```text
+CreateContainerConfigError
+```
 
-Objetivo:
+Al revisar eventos con:
 
-- Crear una instancia EC2 pequeña para laboratorio.
-- Acceder por SSH.
-- Verificar costos y apagar recursos cuando no se usen.
+```bash
+kubectl describe pod -n webhook-validator
+```
 
-Concepto:
+Kubernetes reportó:
 
-EC2 será nuestro servidor barato para simular un ambiente cloud real sin usar EKS, que sería más costoso para este nivel de laboratorio.
+```text
+container has runAsNonRoot and image has non-numeric user
+```
 
-Criterio de éxito:
+La solución correcta no fue quitar `runAsNonRoot`, sino mejorar el Dockerfile para usar un UID/GID numérico.
 
-- Existe una instancia EC2 funcionando.
-- Se puede acceder por SSH.
-- Se documenta cómo detenerla para evitar costos innecesarios.
+Lección:
 
----
-
-### Día 7 — Kubernetes ligero con K3s o Minikube
-
-Objetivo:
-
-- Instalar K3s o Minikube dentro de la instancia EC2.
-- Verificar que `kubectl` funciona.
-
-Concepto:
-
-Kubernetes será el orquestador. En lugar de correr el contenedor manualmente con `docker run`, Kubernetes se encargará de mantener la aplicación viva mediante objetos declarativos.
-
-Criterio de éxito:
-
-- `kubectl get nodes` muestra un nodo activo.
-- El clúster local dentro de EC2 está listo.
-
----
-
-### Día 8 — Manifiestos Kubernetes
-
-Objetivo:
-
-- Crear archivos YAML para `Deployment`, `Service` y `Secret`.
-
-Concepto:
-
-Los manifiestos YAML son instrucciones declarativas. En lugar de decirle manualmente al servidor qué hacer paso por paso, describimos el estado deseado.
-
-Criterio de éxito:
-
-- Existen archivos Kubernetes organizados en una carpeta `k8s/`.
-- La app puede desplegarse con `kubectl apply -f k8s/`.
-
----
-
-### Día 9 — Despliegue en Kubernetes
-
-Objetivo:
-
-- Desplegar la API dentro del clúster.
-- Probar el endpoint `/health` desde Kubernetes.
-
-Concepto:
-
-Este será el paso donde la app deja de ser solo un contenedor manual y pasa a correr como workload orquestado.
-
-Criterio de éxito:
-
-- `kubectl get pods` muestra el pod corriendo.
-- `kubectl get svc` muestra el servicio.
-- `/health` responde desde el despliegue Kubernetes.
-
----
-
-### Día 10 — Documentación final y evidencias de portafolio
-
-Objetivo:
-
-- Actualizar README final.
-- Agregar diagrama de arquitectura.
-- Agregar screenshots o comandos de evidencia.
-- Escribir una explicación tipo entrevista.
-
-Concepto:
-
-Un proyecto de portafolio no solo debe funcionar; también debe poder explicarse. Este día convierte el trabajo técnico en una historia profesional clara.
-
-Criterio de éxito:
-
-- README completo.
-- Arquitectura documentada.
-- Flujo DevSecOps explicado.
-- Proyecto listo para compartir en GitHub o LinkedIn.
+```text
+Una imagen puede funcionar con docker run,
+pero necesitar ajustes adicionales para cumplir controles de seguridad en Kubernetes.
+```
 
 ---
 
@@ -965,6 +1178,91 @@ docker run --rm \
   webhook-validator:local
 ```
 
+Ver recursos Kubernetes:
+
+```bash
+kubectl get all -n webhook-validator
+```
+
+Ver logs Kubernetes:
+
+```bash
+kubectl logs deployment/webhook-validator -n webhook-validator
+```
+
+Describir Pod:
+
+```bash
+kubectl describe pod -n webhook-validator <pod-name>
+```
+
+Ver rollout:
+
+```bash
+kubectl rollout status deployment/webhook-validator -n webhook-validator
+```
+
+---
+
+## Próximos sprints diarios de 2 horas
+
+### Día 8 — Validación Kubernetes en CI
+
+Objetivo:
+
+- Agregar validación de manifests Kubernetes en GitHub Actions.
+
+Opciones:
+
+- `kubectl apply --dry-run=client`
+- kube-score
+- kube-linter
+- Trivy config scan
+
+Criterio de éxito:
+
+- El pipeline detecta errores de YAML o malas configuraciones básicas antes del merge.
+
+---
+
+### Día 9 — Publicar imagen en registry
+
+Objetivo:
+
+- Publicar la imagen Docker en GHCR o Docker Hub.
+
+Concepto:
+
+Minikube puede usar imágenes locales, pero un cluster externo necesita descargar la imagen desde un registry.
+
+Criterio de éxito:
+
+- Existe una imagen versionada en un registry.
+- El Deployment puede apuntar a esa imagen.
+- Se documenta el tag usado.
+
+---
+
+### Día 10 — AWS EC2 + K3s o Minikube
+
+Objetivo:
+
+- Crear una instancia EC2 pequeña para laboratorio.
+- Instalar K3s o Minikube.
+- Desplegar la app usando la imagen publicada.
+
+Concepto:
+
+EC2 será un laboratorio barato para simular un ambiente cloud real sin usar EKS.
+
+Criterio de éxito:
+
+- Existe una instancia EC2 funcionando.
+- Se puede acceder por SSH.
+- Kubernetes corre dentro de EC2.
+- La aplicación se despliega correctamente.
+- Se documenta cómo detener o eliminar recursos para evitar costos.
+
 ---
 
 ## Cómo explicar este proyecto en entrevista
@@ -986,9 +1284,18 @@ La API en sí es simple: valida webhooks usando HMAC SHA-256. Pero el propósito
 - Investigué hallazgos CVE y diferencié dependencias Python de paquetes heredados de la imagen base.
 - Remedié Starlette cuando existía fix disponible.
 - Cambié la imagen base a Alpine para reducir la superficie de ataque.
-- El siguiente paso será desplegar la aplicación en Kubernetes usando una alternativa barata a EKS.
+- Agregué manifests Kubernetes para Namespace, Secret, Deployment y Service.
+- Validé la app en Kubernetes local con Minikube.
+- Resolví un error real de Kubernetes relacionado con `runAsNonRoot` y usuarios no numéricos.
+- Automaticé el despliegue local de Kubernetes con scripts Bash.
 
-En términos profesionales, este proyecto conecta conocimientos de seguridad, automatización, infraestructura y confiabilidad operacional.
+En términos profesionales, este proyecto conecta conocimientos de seguridad, automatización, infraestructura, contenedores, Kubernetes y confiabilidad operacional.
+
+---
+
+## Explicación corta para entrevista
+
+> Construí una API en FastAPI para validar webhooks con HMAC SHA-256. Después la llevé por un flujo DevSecOps completo: pruebas con Pytest, Docker, usuario no-root, GitHub Actions, Trivy, triage de CVE, cambio de imagen base a Alpine, y despliegue local en Kubernetes con Minikube. Agregué Secrets, readiness/liveness probes, resource limits y security context. Durante el despliegue resolví un error real de Kubernetes relacionado con `runAsNonRoot` y actualicé el Dockerfile para usar UID/GID numérico. Finalmente automaticé el despliegue local con scripts Bash para hacerlo reproducible.
 
 ---
 
@@ -998,6 +1305,7 @@ En términos profesionales, este proyecto conecta conocimientos de seguridad, au
 - Límite mensual objetivo: $5 USD.
 - Recursos AWS creados hasta este punto: ninguno.
 - Riesgo actual de costo cloud: bajo.
+- Kubernetes probado localmente con Minikube: sin costo cloud.
 
 ---
 

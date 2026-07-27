@@ -1,71 +1,90 @@
 # S3 Security Auditor
 
-A lightweight Python CLI tool that audits **simulated AWS S3 bucket configurations**, detects common cloud security misconfigurations, generates structured findings, supports JSON/CSV reporting, runs automated tests with `pytest`, can optionally send alerts to Discord, and can act as a CI/CD security gate.
+> **Project status:** Complete for the defined educational scope  
+> **Development status:** Preserved as a finished learning milestone; no active feature development planned
 
-This project is part of my DevSecOps learning log and demonstrates how Python can be used to automate basic security, compliance, testing, reporting, and GRC-style checks.
+A Python CLI tool that audits **simulated AWS S3 bucket configurations**, detects common cloud-security misconfigurations, generates structured findings, supports JSON and CSV reporting, sends optional Discord alerts, and can behave as a basic CI/CD security gate.
 
-> **Note:** This tool uses simulated infrastructure data from a local JSON file. It does not connect to a real AWS account.
+> This project uses a local JSON inventory. It does not connect to a real AWS account.
 
 ---
 
 ## Project Purpose
 
-The goal of this project is to show how a simple security audit script can evolve into a more professional and reusable security automation tool.
+The project demonstrates how a small security script can evolve into a tested and reusable automation tool.
 
-The tool reads a JSON inventory of simulated S3 buckets, evaluates several security controls, generates structured findings, saves the results as JSON or CSV, optionally sends alert notifications when findings meet a severity threshold, and includes automated unit tests to validate the core audit logic.
+It translates simplified S3 security requirements into executable checks and produces evidence that can be consumed by engineers, pipelines, or GRC stakeholders.
 
-This project demonstrates:
+```text
+Simulated S3 inventory
+        ↓
+Input validation
+        ↓
+Security-control evaluation
+        ↓
+Severity assignment
+        ↓
+Structured findings
+        ↓
+JSON / CSV report
+        ↓
+Optional Discord alert
+        ↓
+Optional CI failure threshold
+```
 
-- Python scripting for security automation
-- CLI development with `argparse`
-- JSON parsing and validation
-- CSV and JSON reporting
-- Error handling with custom exceptions
-- Logging instead of plain `print()` statements
-- Cloud security control logic
-- GRC-style findings and recommendations
-- Basic mapping to security frameworks
-- Optional webhook-based alerting
-- Secure handling of secrets using environment variables
-- CI/CD-style failure thresholds with `--fail-on-severity`
-- Automated testing with `pytest`
-- Mocked tests for external webhook behavior
-- Feature branch workflow for incremental improvements
+The value of the project is not that it replaces an AWS security product. Its value is showing the connection between **security controls, Python logic, tests, evidence generation, notifications, and pipeline decisions**.
 
 ---
 
-## Features
+## Final Scope
 
-- Audits simulated AWS S3 bucket configurations
-- Detects public buckets
-- Detects missing encryption
-- Detects missing versioning
-- Detects missing access logging
-- Generates structured findings
-- Supports JSON output for automation
-- Supports CSV output for GRC/spreadsheet review
-- Prints an audit summary in the terminal
-- Supports optional Discord webhook alerts
-- Allows severity-based notification filtering
-- Can fail with exit code `2` when findings meet a configured severity threshold
-- Handles common input, validation, file, and network errors
-- Includes automated pytest coverage for core logic
-- Includes mocked tests for Discord webhook alert behavior
-- Uses `pytest.ini` to configure local test discovery and imports
-- Can be integrated into a CI/CD workflow as a basic security gate
+The completed version includes:
+
+- A command-line interface built with `argparse`
+- Local JSON inventory loading and validation
+- Four simulated S3 security controls
+- Environment-aware severity logic
+- Structured findings with recommendations
+- Simplified security-framework mappings
+- JSON and CSV output
+- Professional logging
+- Custom error handling
+- Optional Discord webhook alerts
+- Environment-variable secret handling
+- Severity-based notification filtering
+- CI-style failure behavior with `--fail-on-severity`
+- Automated tests with `pytest`
+- Mocked tests for the external webhook integration
+- GitHub Actions CI for repeatable validation
 
 ---
 
 ## Security Controls
 
-The current version checks whether each simulated S3 bucket meets the following controls:
-
-| Control ID | Description | Risk |
+| Control ID | Requirement | Main risk |
 |---|---|---|
-| `S3_PUBLIC_ACCESS_DISABLED` | Bucket should not be publicly accessible | Public exposure of sensitive data |
-| `S3_ENCRYPTION_ENABLED` | Bucket should have encryption enabled | Data at rest may not be protected |
-| `S3_VERSIONING_ENABLED` | Bucket should have versioning enabled | Accidental deletion or overwrite may be harder to recover from |
-| `S3_ACCESS_LOGGING_ENABLED` | Bucket should have access logging enabled | Reduced visibility for investigations and monitoring |
+| `S3_PUBLIC_ACCESS_DISABLED` | A bucket should not be publicly accessible | Unauthorized public exposure of data |
+| `S3_ENCRYPTION_ENABLED` | Encryption at rest should be enabled | Stored data may lack expected protection |
+| `S3_VERSIONING_ENABLED` | Versioning should be enabled | Recovery from deletion or overwrite becomes harder |
+| `S3_ACCESS_LOGGING_ENABLED` | Access logging should be enabled | Reduced visibility for monitoring and investigations |
+
+---
+
+## Severity Model
+
+Severity depends on the failed control and the declared environment.
+
+| Condition | Severity |
+|---|---|
+| Public bucket in `production` | `critical` |
+| Public bucket outside production | `high` |
+| Missing encryption in `production` | `high` |
+| Missing encryption outside production | `medium` |
+| Missing versioning or logging in `production` | `medium` |
+| Missing versioning or logging outside production | `low` |
+
+This model is intentionally simplified. It demonstrates prioritization logic but is not a formal risk assessment methodology.
 
 ---
 
@@ -79,32 +98,36 @@ auto-audit-script/
 ├── requirements.txt
 ├── requirements-dev.txt
 ├── pytest.ini
-├── README.md
-└── tests/
-    └── test_audit.py
+├── tests/
+│   └── test_audit.py
+└── README.md
 ```
-
-### File Description
 
 | File | Purpose |
 |---|---|
-| `audit.py` | Main Python CLI script that performs the audit |
-| `infrastructure.example.json` | Example input file with simulated S3 bucket configurations |
-| `findings.example.json` | Example JSON output file generated by the audit |
-| `requirements.txt` | Runtime Python dependency list |
-| `requirements-dev.txt` | Development dependency list for testing |
-| `pytest.ini` | Pytest configuration for test discovery and local imports |
-| `tests/test_audit.py` | Unit tests for audit logic, alerting logic, output formats, and CLI behavior |
-| `README.md` | Project documentation |
+| `audit.py` | CLI entry point, validation, audit logic, reporting, notification, and exit behavior |
+| `infrastructure.example.json` | Example simulated S3 inventory |
+| `findings.example.json` | Example machine-readable findings |
+| `requirements.txt` | Runtime dependencies |
+| `requirements-dev.txt` | Development and test dependencies |
+| `pytest.ini` | Test discovery and import configuration |
+| `tests/test_audit.py` | Unit, integration-style, output, notification, and CLI behavior tests |
 
 ---
 
 ## Requirements
 
-Recommended Python version:
+Recommended version:
+
+```text
+Python 3.10+
+```
+
+Create and activate a virtual environment:
 
 ```bash
-Python 3.10+
+python3 -m venv .venv
+source .venv/bin/activate
 ```
 
 Install runtime dependencies:
@@ -113,33 +136,17 @@ Install runtime dependencies:
 pip install -r requirements.txt
 ```
 
-Current runtime dependency:
-
-```text
-requests>=2.31.0
-```
-
-The `requests` package is used to send optional Discord webhook alerts.
-
-Install development dependencies for testing:
+Install development dependencies:
 
 ```bash
 pip install -r requirements-dev.txt
 ```
 
-Current development dependency:
-
-```text
-pytest>=8.0.0
-```
-
 ---
 
-## Example Input
+## Input Format
 
-The input file must be a JSON list of bucket objects.
-
-Example:
+The input must be a JSON list of bucket objects.
 
 ```json
 [
@@ -166,51 +173,15 @@ Example:
 
 ## Basic Usage
 
-From the `auto-audit-script/` directory, run:
-
-```bash
-python audit.py --input infrastructure.example.json --output findings.example.json
-```
-
-If your system uses `python3`, run:
-
-```bash
-python3 audit.py --input infrastructure.example.json --output findings.example.json
-```
-
----
-
-## CLI Arguments
-
-| Argument | Required | Description |
-|---|---:|---|
-| `--input` | Yes | Path to the JSON file containing the simulated S3 bucket inventory |
-| `--output` | No | Path where audit findings will be saved. Default: `findings.json` |
-| `--output-format` | No | Output format for findings. Supported values: `json`, `csv`. Default: `json` |
-| `--webhook-url` | No | Discord webhook URL. Can also be set with `DISCORD_WEBHOOK_URL` |
-| `--notify-severity` | No | Minimum severity required to trigger a Discord alert. Default: `high` |
-| `--fail-on-severity` | No | Exit with code `2` if findings meet or exceed this severity |
-
----
-
-## JSON Output
-
-Run:
+Run the audit and create a JSON report:
 
 ```bash
 python audit.py \
   --input infrastructure.example.json \
-  --output findings.example.json \
-  --output-format json
+  --output findings.example.json
 ```
 
-JSON output is useful for automation, CI/CD pipelines, APIs, future integrations, and machine-readable reporting.
-
----
-
-## CSV Output
-
-Run:
+Create a CSV report:
 
 ```bash
 python audit.py \
@@ -219,68 +190,24 @@ python audit.py \
   --output-format csv
 ```
 
-CSV output is useful for GRC reporting, spreadsheet review, audit evidence, and sharing findings with non-engineering stakeholders.
+---
 
-Example CSV columns:
+## CLI Arguments
 
-```text
-resource_type,resource_name,environment,control_id,status,severity,message,recommendation,framework_mapping
-```
+| Argument | Required | Description |
+|---|---:|---|
+| `--input` | Yes | Path to the simulated S3 inventory |
+| `--output` | No | Destination for findings; defaults to `findings.json` |
+| `--output-format` | No | `json` or `csv`; defaults to `json` |
+| `--webhook-url` | No | Discord webhook URL; environment variable use is preferred |
+| `--notify-severity` | No | Minimum severity that triggers a notification |
+| `--fail-on-severity` | No | Minimum severity that causes a policy-failure exit code |
 
 ---
 
-## Security Gate: Fail on Severity
+## Structured Findings
 
-The `--fail-on-severity` option allows the auditor to behave like a CI/CD security gate.
-
-Example:
-
-```bash
-python audit.py \
-  --input infrastructure.example.json \
-  --output findings.example.json \
-  --fail-on-severity high
-```
-
-Expected behavior:
-
-| Exit Code | Meaning |
-|---:|---|
-| `0` | Audit completed successfully and no findings met the failure threshold |
-| `1` | Technical execution error, such as invalid input or file issue |
-| `2` | Audit completed, but findings met or exceeded the configured severity threshold |
-
-This makes the tool useful in DevSecOps pipelines where high-risk findings should block a merge or deployment.
-
----
-
-## Example Terminal Output
-
-Example output:
-
-```text
-INFO | Starting S3 security audit
-CRITICAL | Finding created: bucket 'prod-customer-data' is public in 'production'.
-WARNING | Finding created: bucket 'prod-customer-data' does not have encryption enabled.
-WARNING | Finding created: bucket 'prod-customer-data' does not have versioning enabled.
-WARNING | Finding created: bucket 'prod-customer-data' does not have access logging enabled.
-INFO | ========== AUDIT SUMMARY ==========
-INFO | Total buckets scanned: 4
-INFO | Total findings: 10
-INFO | Critical findings: 1
-INFO | High findings: 2
-INFO | Medium findings: 3
-INFO | Low findings: 4
-INFO | Findings written to: findings.example.json
-INFO | Discord webhook not configured. Skipping alert notification.
-ERROR | Audit failed because findings met or exceeded severity threshold: high
-```
-
----
-
-## Example Finding
-
-The tool generates structured findings like this:
+Example finding:
 
 ```json
 {
@@ -300,35 +227,42 @@ The tool generates structured findings like this:
 }
 ```
 
+JSON supports automation and machine processing. CSV supports spreadsheet review, evidence handling, and communication with non-engineering stakeholders.
+
 ---
 
-## Discord Webhook Alerts
+## CI/CD Security Gate
 
-The tool can optionally send audit alerts to Discord when findings meet or exceed a configured severity threshold.
-
-### Important Security Note
-
-Never commit a real Discord webhook URL to GitHub.
-
-A webhook URL is a secret. Anyone with the URL can send messages to your Discord channel.
-
-Use an environment variable instead.
-
-### Set the Webhook URL
-
-On Linux, macOS, or WSL:
+The `--fail-on-severity` option separates an execution error from a policy failure.
 
 ```bash
-export DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/your-webhook-url"
+python audit.py \
+  --input infrastructure.example.json \
+  --output findings.example.json \
+  --fail-on-severity high
 ```
 
-On Windows PowerShell:
+| Exit code | Meaning |
+|---:|---|
+| `0` | Audit succeeded and no finding met the configured failure threshold |
+| `1` | Technical execution error, such as invalid input or an output failure |
+| `2` | Audit completed, but findings met or exceeded the configured threshold |
 
-```powershell
-$env:DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/your-webhook-url"
+This behavior allows a pipeline to distinguish between a broken tool and a valid audit that found unacceptable risk.
+
+---
+
+## Discord Notifications
+
+A Discord webhook can receive a summary when findings meet the notification threshold.
+
+Set the secret in the environment rather than committing it:
+
+```bash
+export DISCORD_WEBHOOK_URL="https://discord.com/api/webhooks/example"
 ```
 
-### Run with Discord Alerts
+Run the audit:
 
 ```bash
 python audit.py \
@@ -337,217 +271,143 @@ python audit.py \
   --notify-severity high
 ```
 
-You can also pass the webhook URL directly with `--webhook-url`, but this is not recommended for public repositories or shared terminal history.
+Notification thresholds:
 
-```bash
-python audit.py \
-  --input infrastructure.example.json \
-  --output findings.example.json \
-  --webhook-url "$DISCORD_WEBHOOK_URL" \
-  --notify-severity high
-```
-
----
-
-## Notification Severity Threshold
-
-The `--notify-severity` argument controls the minimum severity required to send a Discord alert.
-
-| Value | Meaning |
+| Value | Findings that can trigger an alert |
 |---|---|
-| `low` | Send alerts for low, medium, high, and critical findings |
-| `medium` | Send alerts for medium, high, and critical findings |
-| `high` | Send alerts for high and critical findings |
-| `critical` | Send alerts only for critical findings |
+| `low` | Low, medium, high, and critical |
+| `medium` | Medium, high, and critical |
+| `high` | High and critical |
+| `critical` | Critical only |
+
+A webhook URL is a secret because anyone who possesses it may be able to send messages through the integration.
 
 ---
 
-## Severity Logic
-
-The script assigns severity based on the failed control and the environment.
-
-| Condition | Severity |
-|---|---|
-| Public bucket in `production` | `critical` |
-| Public bucket outside production | `high` |
-| Missing encryption in `production` | `high` |
-| Missing encryption outside production | `medium` |
-| Missing versioning or logging in `production` | `medium` |
-| Missing versioning or logging outside production | `low` |
-
----
-
-## Running Tests
-
-This project uses `pytest` for automated unit testing.
-
-Install development dependencies:
-
-```bash
-pip install -r requirements-dev.txt
-```
+## Testing
 
 Run the test suite:
-
-```bash
-pytest
-```
-
-Run tests with verbose output:
 
 ```bash
 pytest -v
 ```
 
-Latest expected local result:
+The final suite contains more than 40 tests covering areas such as:
+
+- Secure and insecure bucket scenarios
+- Environment-aware severity assignment
+- Invalid resource objects
+- Missing or malformed input
+- JSON and CSV output
+- Notification thresholds
+- Mocked Discord requests
+- Webhook failures
+- Failure-threshold behavior
+- CLI exit codes
+
+The project uses mocks for Discord so automated tests do not send real network notifications.
+
+---
+
+## Continuous Integration
+
+GitHub Actions runs the automated test suite when relevant changes are pushed or proposed through a pull request.
 
 ```text
-40+ passing tests
+Push / Pull Request
+        ↓
+Install Python
+        ↓
+Install dependencies
+        ↓
+Run pytest
+        ↓
+Pass or fail the workflow
 ```
 
-### Test Coverage Includes
-
-- Public production bucket detection
-- Public staging bucket detection
-- Secure bucket behavior
-- Missing encryption detection
-- Missing versioning detection
-- Missing access logging detection
-- Invalid bucket object handling
-- Missing or invalid bucket name handling
-- Severity assignment logic
-- Notification severity threshold logic
-- Discord webhook alert sending with mocks
-- Discord webhook skip behavior when threshold is not met
-- Discord webhook request failure behavior
-- Empty webhook URL behavior
-- Valid JSON loading
-- Missing file handling
-- Invalid JSON handling
-- Invalid JSON structure handling
-- Fail-on-severity threshold behavior
-- JSON output writing
-- CSV output writing
-- Unsupported output format handling
-- CLI behavior for CSV output
-
-### Pytest Configuration
-
-The project includes a `pytest.ini` file:
-
-```ini
-[pytest]
-pythonpath = .
-testpaths = tests
-```
+The CI workflow makes the validation repeatable and protects the repository from merging known test failures.
 
 ---
 
 ## Error Handling
 
-This project includes error handling for common failure scenarios:
-
-| Scenario | How it is handled |
+| Scenario | Final behavior |
 |---|---|
-| Input file does not exist | Raises and logs a `FileNotFoundError` |
-| Input path is not a file | Raises and logs a custom `AuditError` |
-| Invalid JSON | Raises and logs a `ValueError` |
-| JSON is not a list | Raises and logs a `TypeError` |
-| Invalid bucket object | Logs a warning and skips the item |
-| Missing or invalid fields | Logs a warning and continues the audit |
-| Output file cannot be written | Raises and logs a custom `AuditError` |
-| Unsupported output format | Raises a `ValueError` |
-| Discord webhook URL is missing | Logs an informational message and skips notification |
-| Discord webhook request fails | Raises and logs a custom `AuditError` |
-| Findings meet fail threshold | Returns exit code `2` for CI/CD security gate behavior |
-
-The goal is to avoid crashing the entire audit because of one malformed resource, while still surfacing meaningful errors and policy failures.
+| Missing input file | Log and return a technical failure |
+| Input path is not a file | Raise a controlled audit error |
+| Invalid JSON | Log a validation error |
+| Top-level JSON is not a list | Reject the inventory |
+| Invalid bucket object | Warn, skip the item, and continue where possible |
+| Invalid or missing bucket fields | Surface a warning without terminating the full audit |
+| Output cannot be written | Return a controlled technical failure |
+| Unsupported output format | Reject the requested format |
+| Missing Discord webhook | Skip notification and continue |
+| Discord request failure | Surface a controlled integration error |
+| Finding reaches policy threshold | Complete the audit and return exit code `2` |
 
 ---
 
-## Why This Matters
+## Design Decisions
 
-Misconfigured cloud storage is a common security risk. Public buckets, missing encryption, lack of versioning, and weak logging can increase the likelihood and impact of a security incident.
+### Simulated Inventory
 
-This project simulates how a security engineer, DevSecOps practitioner, or GRC analyst could automate cloud control checks, produce structured evidence, send notifications for high-priority issues, validate the automation with repeatable tests, and use findings as a CI/CD security gate.
+The local JSON inventory isolates the control logic from AWS credentials, API costs, account configuration, and network access. This made it possible to focus on Python design, testing, severity logic, reporting, and CI behavior.
 
----
+### Structured Findings
 
-## Skills Demonstrated
+Each finding carries consistent fields so the same result can support logging, JSON, CSV, notifications, and future integrations.
 
-This project demonstrates practical skills relevant to Security, DevSecOps, and GRC roles:
+### Separate Notification and Failure Thresholds
 
-- Python
-- Cloud security fundamentals
-- AWS S3 security concepts
-- Security control evaluation
-- Compliance-style reporting
-- CLI tooling
-- Logging
-- Exception handling
-- JSON-based data processing
-- CSV report generation
-- Structured security findings
-- Webhook integration
-- Secure secret handling with environment variables
-- Automated testing with `pytest`
-- Mocking external integrations
-- Test parametrization
-- Temporary file testing with `tmp_path`
-- Local test configuration with `pytest.ini`
-- CI/CD security gate logic
-- Feature branch workflow
-- DevSecOps automation mindset
+A team may want to send alerts at one severity while blocking a pipeline at another. Keeping these decisions separate makes the CLI more flexible.
+
+### Mocked External Integration
+
+Discord behavior is tested without making real external requests. This improves reliability and prevents accidental messages during CI runs.
 
 ---
 
-## Implementation History
+## Limitations and Out-of-Scope Items
 
-| Feature | Status |
-|---|---|
-| Production-ready S3 audit CLI | ✅ Completed |
-| Structured JSON findings | ✅ Completed |
-| Discord webhook alerting | ✅ Completed |
-| Severity-based alert filtering | ✅ Completed |
-| Pytest unit test coverage | ✅ Completed |
-| Local pytest configuration | ✅ Completed |
-| GitHub Actions CI for tests | ✅ Completed |
-| Mocked Discord webhook tests | ✅ Completed |
-| Fail-on-severity security gate | ✅ Completed |
-| CSV findings export | ✅ Completed |
+This is an educational project, not a production AWS scanner.
 
----
+The final scope does not include:
 
-## Limitations
+- Live AWS inventory through `boto3`
+- IAM, bucket-policy, or ACL evaluation
+- Cross-account discovery
+- Additional AWS services
+- Formal compliance certification
+- A production notification platform
+- SARIF publishing or packaging as an installable CLI
 
-This is an educational project and has the following limitations:
-
-- It does not connect to real AWS APIs.
-- It relies on simulated JSON input.
-- It does not validate real IAM policies, bucket policies, or bucket ACLs.
-- Discord alerting depends on an externally created webhook.
-- Framework mappings are simplified and not intended to replace a formal compliance assessment.
-- CSV export is designed for basic reporting and does not replace a full GRC platform.
+These are possible directions for a separate future project, not unfinished requirements of this one.
 
 ---
 
-## Future Improvements
+## Lessons Demonstrated
 
-Possible improvements for future versions:
+- Security requirements can be represented as explicit and testable logic.
+- A finding should include context, severity, and a recommended action.
+- Machine-readable and human-readable reports serve different audiences.
+- A scanner's exit code can become a policy decision in CI/CD.
+- External integrations should use environment-based secrets and mocked tests.
+- Passing tests do not prove that the security model is complete; limitations must remain visible.
 
-- Add support for real AWS inventory using `boto3`
-- Add more S3 controls
-- Add Slack webhook support
-- Add support for additional AWS services such as IAM, EC2, and Security Groups
-- Add a summary table output
-- Add SARIF output for GitHub code scanning-style integrations
-- Package the tool as an installable Python CLI
-- Add release tagging and versioning
+---
+
+## Interview Summary
+
+> I built a Python CLI that audits a simulated inventory of S3 buckets for public access, encryption, versioning, and logging. The tool generates structured JSON or CSV findings, assigns severity based on environment, sends optional Discord alerts, and can return a separate exit code when findings violate a configured threshold. I added more than 40 pytest tests, mocked the external webhook integration, and used GitHub Actions for repeatable validation. The project intentionally uses simulated data, so it demonstrates security-control automation and CI behavior without claiming to be a live AWS scanner.
+
+---
+
+## Final Project Statement
+
+The S3 Security Auditor is complete for its defined learning scope. Its final version is preserved as evidence of Python security automation, control translation, testing, reporting, notification handling, and CI/CD gate design.
 
 ---
 
 ## Disclaimer
 
-This project is for educational and portfolio purposes only.
-
-It does not perform real AWS security scanning and should not be used as a replacement for professional cloud security tools or formal compliance assessments.
+This project is for educational and portfolio purposes only. It is not a replacement for AWS-native security services, commercial cloud-security platforms, or a formal compliance assessment.
